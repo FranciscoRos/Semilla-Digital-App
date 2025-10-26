@@ -16,4 +16,5 @@
   -->
 
 <resources>
+    <color name="green_primary">#4CAF50</color>
 </resources>

@@ -26,10 +26,12 @@ import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.ViewCompat
+import androidx.core.view.WindowCompat
 
 private val DarkColorScheme = darkColorScheme(
     primary = Purple80,
@@ -38,19 +40,14 @@ private val DarkColorScheme = darkColorScheme(
 )
 
 private val LightColorScheme = lightColorScheme(
-    primary = Purple40,
-    secondary = PurpleGrey40,
-    tertiary = Pink40
-
-    /* Other default colors to override
-    background = Color(0xFFFFFBFE),
-    surface = Color(0xFFFFFBFE),
-    onPrimary = Color.White,
-    onSecondary = Color.White,
-    onTertiary = Color.White,
-    onBackground = Color(0xFF1C1B1F),
-    onSurface = Color(0xFF1C1B1F),
-    */
+    primary = GreenPrimary,       // El verde principal
+    secondary = BlueAccent,     // El azul de acento
+    background = BackgroundLight, // Blanco
+    surface = BackgroundLight,    // Blanco
+    onPrimary = Color.White,      // Texto sobre botones verdes
+    onSecondary = Color.White,    // Texto sobre botones azules
+    onBackground = TextPrimary,   // Texto normal oscuro
+    onSurface = TextPrimary,      // Texto normal oscuro
 )
 
 @Composable
@@ -79,6 +76,25 @@ fun MyApplicationTheme(
     MaterialTheme(
         colorScheme = colorScheme,
         typography = Typography,
+
+
+        content = content
+    )
+}
+
+@Composable
+fun SemillaDigitalTheme( // 2. Renombramos la función
+    // darkTheme: Boolean = isSystemInDarkTheme(), // Por ahora no usaremos tema oscuro
+    content: @Composable () -> Unit
+) {
+    // 3. Forzamos el tema claro para que coincida con las maquetas
+    val colorScheme = LightColorScheme
+
+
+    // 5. Aplicamos el tema
+    MaterialTheme(
+        colorScheme = colorScheme,
+        typography = Typography, // Esta variable viene de tu archivo Type.kt
         content = content
     )
 }

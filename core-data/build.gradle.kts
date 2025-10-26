@@ -50,15 +50,20 @@ android {
 }
 
 dependencies {
+    //este es para caché
     implementation(project(":core-database"))
 
-    // Arch Components
-    implementation(libs.hilt.android)
-    kapt(libs.hilt.compiler)
+
+
+
 
     implementation(libs.kotlinx.coroutines.android)
 
     // Local tests: jUnit, coroutines, Android runner
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)
+
+    // Hilt para inyección de dependencias
+    implementation(libs.hilt.android)
+    kapt(libs.hilt.compiler)
 }

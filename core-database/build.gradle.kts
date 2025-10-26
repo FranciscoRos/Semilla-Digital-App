@@ -62,6 +62,8 @@ dependencies {
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
     ksp(libs.androidx.room.compiler)
+
+    // Hilt para inyección de dependencias
     implementation(libs.hilt.android)
     kapt(libs.hilt.compiler)
 }

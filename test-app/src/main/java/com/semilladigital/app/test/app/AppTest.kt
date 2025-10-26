@@ -23,7 +23,6 @@ import dagger.hilt.android.testing.HiltAndroidTest
 import org.junit.Rule
 import org.junit.Test
 import com.semilladigital.app.core.data.di.fakeApps
-import com.semilladigital.app.ui.MainActivity
 
 @HiltAndroidTest
 class AppTest {

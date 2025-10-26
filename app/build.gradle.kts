@@ -82,14 +82,20 @@ dependencies {
     implementation(project(":feature-app"))
 
     //nuestras dependencias del proyecto
+    implementation(project(":auth"))
+    implementation(project(":chatbot"))
+    implementation(project(":courses"))
+    implementation(project(":supports"))
 
+
+    implementation(project(":core-data"))
 
     // Core Android dependencies
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
 
-    // Hilt Dependency Injection
+    // Hilt para inyección de dependencias
     implementation(libs.hilt.android)
     kapt(libs.hilt.compiler)
 

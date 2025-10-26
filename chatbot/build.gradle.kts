@@ -8,7 +8,7 @@ android {
     compileSdk = 36
 
     defaultConfig {
-        minSdk = 28
+        minSdk = 23
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles("consumer-rules.pro")
@@ -33,6 +33,10 @@ android {
 }
 
 dependencies {
+
+    //Para acceder a los objetos de ui
+    implementation(project(":core-ui"))
+    implementation(project(":core-data"))
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)

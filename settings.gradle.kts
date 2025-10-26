@@ -37,6 +37,8 @@ include(":core-testing")
 include(":core-ui")
 include(":feature-app")
 include(":test-app")
+
+include(":auth")
 include(":courses")
 include(":chatbot")
 include(":supports")
