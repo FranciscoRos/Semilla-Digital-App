@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -31,7 +31,8 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.ViewCompat
-import androidx.core.view.WindowCompat
+// El import de WindowCompat no es necesario aquí, solo en MainActivity
+// import androidx.core.view.WindowCompat
 
 private val DarkColorScheme = darkColorScheme(
     primary = Purple80,
@@ -90,6 +91,22 @@ fun SemillaDigitalTheme( // 2. Renombramos la función
     // 3. Forzamos el tema claro para que coincida con las maquetas
     val colorScheme = LightColorScheme
 
+    // --- INICIO DE LA FUSIÓN ---
+    // 4. Añadimos el SideEffect para controlar la barra de estado
+    val view = LocalView.current
+    if (!view.isInEditMode) {
+        SideEffect {
+            val window = (view.context as Activity).window
+
+            // Pone la barra de estado de color Verde Primario
+            window.statusBarColor = colorScheme.primary.toArgb()
+
+            // Pone los iconos (reloj, batería) de color CLARO (false)
+            // ya que nuestro fondo (GreenPrimary) es oscuro.
+            ViewCompat.getWindowInsetsController(view)?.isAppearanceLightStatusBars = false
+        }
+    }
+    // --- FIN DE LA FUSIÓN ---
 
     // 5. Aplicamos el tema
     MaterialTheme(
