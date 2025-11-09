@@ -1,36 +1,46 @@
-/*
- * Copyright (C) 2022 The Android Open Source Project
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package com.semilladigital.app.ui
 
-import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.semilladigital.app.feature.app.ui.AppScreen
+import com.semilladigital.dashboard.ui.DashboardScreen // Importa el Dashboard
+import com.semilladigital.courses.ui.CourseScreen       // Importa los Cursos
+
+// Define los nombres únicos (rutas) para cada pantalla
+object Routes {
+    const val DASHBOARD = "dashboard"
+    const val COURSES = "courses"
+    // const val SUPPORTS = "supports"
+    // const val CHATBOT = "chatbot"
+    // const val GEOMAP = "geomap"
+}
 
 @Composable
-fun MainNavigation() {
+fun AppNavigation() {
     val navController = rememberNavController()
 
-    NavHost(navController = navController, startDestination = "main") {
-        composable("main") { AppScreen(modifier = Modifier.padding(16.dp)) }
-        // TODO: Add more destinations
+    NavHost(
+        navController = navController,
+        startDestination = Routes.DASHBOARD // Empezamos en el Dashboard
+    ) {
+
+        // Pantalla 1: Dashboard
+        composable(Routes.DASHBOARD) {
+            DashboardScreen(
+                // Cuando se presiona "Cursos", navegamos a la ruta de cursos
+                onNavigateToCourses = { navController.navigate(Routes.COURSES) },
+                onNavigateToSupports = { /* TODO */ },
+                onNavigateToChatbot = { /* TODO */ },
+                onNavigateToGeomap = { /* TODO */ }
+            )
+        }
+
+        // Pantalla 2: Cursos
+        composable(Routes.COURSES) {
+            CourseScreen() // Mostramos la pantalla de cursos que ya hicimos
+        }
+
+        // ... Aquí añadiremos las otras rutas (Apoyos, Chatbot, etc.)
     }
 }

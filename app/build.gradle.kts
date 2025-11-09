@@ -82,6 +82,7 @@ dependencies {
     implementation(project(":feature-app"))
 
     //nuestras dependencias del proyecto
+    implementation(project(":dashboard"))
     implementation(project(":auth"))
     implementation(project(":chatbot"))
     implementation(project(":courses"))
@@ -111,7 +112,6 @@ dependencies {
     implementation(libs.androidx.compose.ui)
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.compose.material3)
-
     // Tooling
     debugImplementation(libs.androidx.compose.ui.tooling)
 }

@@ -66,4 +66,11 @@ dependencies {
     // Hilt para inyección de dependencias
     implementation(libs.hilt.android)
     kapt(libs.hilt.compiler)
+
+    // Retrofit (para las llamadas a la API)
+    implementation(libs.retrofit.core)
+    implementation(libs.retrofit.converter.gson) // Para convertir JSON a Kotlin
+    // OkHttp (necesario para Retrofit, especialmente para ver logs)
+    implementation(libs.okhttp.logging.interceptor)
+
 }

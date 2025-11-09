@@ -1,17 +1,13 @@
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.android)
-    alias(libs.plugins.kotlin.kapt)
+    id("kotlin-kapt")
     alias(libs.plugins.compose.compiler)
 }
 
 android {
-    namespace = "com.semilladigital.courses"
+    namespace = "com.semilladigital.dashboard"
     compileSdk = 36
-
-    buildFeatures {
-        compose = true
-    }
 
     defaultConfig {
         minSdk = 23
@@ -36,13 +32,12 @@ android {
     kotlinOptions {
         jvmTarget = "11"
     }
+    buildFeatures {
+        compose = true
+    }
 }
 
 dependencies {
-
-    //Para acceder a los objetos de ui
-    implementation(project(":core-ui"))
-    implementation(project(":core-data"))
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
@@ -51,33 +46,26 @@ dependencies {
     androidTestImplementation(libs.androidx.test.ext.junit)
     androidTestImplementation(libs.androidx.espresso.core)
 
-    // Hilt para inyección de dependencias
+
+
+    // Hilt
     implementation(libs.hilt.android)
     kapt(libs.hilt.compiler)
 
-    //para consumo de api
-    // 1. Para que Hilt pueda encontrar lo que definiste en :core-data
-    implementation(project(":core-data"))
-    implementation(project(":core-ui"))
-    // 2. Para resolver el error de @SerializedName (Gson)
-    implementation(libs.retrofit.converter.gson)
-
-    // 3. Para resolver el error de 'Retrofit' (Retrofit)
-    implementation(libs.retrofit.core)
-
-
+    // Módulo de UI (para los colores)
     implementation(project(":core-ui"))
 
-    // 2. Librerías de Hilt y Lifecycle para ViewModels
-    implementation(libs.androidx.hilt.navigation.compose) // Para hiltViewModel()
-    implementation(libs.androidx.lifecycle.viewmodel.compose) // Para el ViewModel
-    implementation(libs.androidx.lifecycle.runtime.compose) // Para collectAsStateWithLifecycle
+    // Librerías de Hilt y Lifecycle
+    implementation(libs.androidx.hilt.navigation.compose)
+    implementation(libs.androidx.lifecycle.viewmodel.compose)
+    implementation(libs.androidx.lifecycle.runtime.compose)
 
-    // 3. Librerías de Compose (La causa de todos los errores)
+    // Librerías de Compose
     val composeBom = platform(libs.androidx.compose.bom)
     implementation(composeBom)
     implementation(libs.androidx.compose.ui)
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.compose.material3)
+    implementation("androidx.compose.material:material-icons-extended-android")
 
 }
