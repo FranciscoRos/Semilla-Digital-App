@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.kapt)
+    id("org.jetbrains.kotlin.plugin.compose")
 }
 
 android {
@@ -31,6 +32,7 @@ android {
     kotlinOptions {
         jvmTarget = "11"
     }
+    buildFeatures { compose = true }
 }
 
 dependencies {

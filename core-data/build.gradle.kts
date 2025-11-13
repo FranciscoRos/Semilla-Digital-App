@@ -72,5 +72,7 @@ dependencies {
     implementation(libs.retrofit.converter.gson) // Para convertir JSON a Kotlin
     // OkHttp (necesario para Retrofit, especialmente para ver logs)
     implementation(libs.okhttp.logging.interceptor)
+    //para guardar datos constanes
+    implementation(libs.androidx.datastore.preferences)
 
 }

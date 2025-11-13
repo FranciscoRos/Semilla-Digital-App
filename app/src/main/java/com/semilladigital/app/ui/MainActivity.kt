@@ -24,7 +24,9 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    // ¡Aquí llamamos al sistema de navegación!
+                    // --- CAMBIO AQUÍ ---
+                    // Ya no inyectamos el ViewModel aquí.
+                    // El composable 'SplashScreen' lo obtendrá él mismo.
                     AppNavigation()
                 }
             }
