@@ -2,9 +2,8 @@ package com.semilladigital.courses.data.remote.dto
 
 import com.google.gson.annotations.SerializedName
 
-// Este DTO ahora coincide EXACTAMENTE con tu JSON
 data class CourseDto(
-    @SerializedName("id") // Corregido de "_id" a "id"
+    @SerializedName("id")
     val id: String,
 
     @SerializedName("Titulo")
@@ -13,13 +12,19 @@ data class CourseDto(
     @SerializedName("Descripcion")
     val descripcion: String,
 
+    @SerializedName("Detalles")
+    val detalles: String?,
+
+    @SerializedName("Tema")
+    val tema: String?, // General, Agricultura, etc.
+
     @SerializedName("Modalidad")
     val modalidad: String,
 
     @SerializedName("FechaCurso")
     val fechaCurso: String,
 
-    @SerializedName("DireccionUbicacion") // Campo nuevo
+    @SerializedName("DireccionUbicacion")
     val direccion: String?,
 
     @SerializedName("Latitud")
@@ -28,9 +33,6 @@ data class CourseDto(
     @SerializedName("Longitud")
     val longitud: Double?,
 
-    @SerializedName("Url") // Corregido de "URL" a "Url"
+    @SerializedName("Url")
     val url: String?
-
-    // Los campos "Creado" y "Actualizado" no los necesitamos
-    // para la UI, así que los podemos ignorar.
 )

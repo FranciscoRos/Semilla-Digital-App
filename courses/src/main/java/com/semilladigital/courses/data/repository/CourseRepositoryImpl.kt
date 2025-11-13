@@ -38,9 +38,11 @@ private fun CourseDto.toCourse(): Course {
         id = this.id,
         titulo = this.titulo,
         descripcion = this.descripcion,
+        detalles = this.detalles, // <-- AÑADIDO
+        tema = this.tema, // <-- AÑADIDO
         modalidad = this.modalidad,
         fechaCurso = this.fechaCurso,
-        direccion = this.direccion, // Añadido
+        direccion = this.direccion,
         url = this.url,
         lat = this.lat,
         longitud = this.longitud

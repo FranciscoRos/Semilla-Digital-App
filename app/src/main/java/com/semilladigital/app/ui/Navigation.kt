@@ -33,12 +33,14 @@ fun AppNavigation() {
                 onNavigateToSupports = { /* TODO */ },
                 onNavigateToChatbot = { /* TODO */ },
                 onNavigateToGeomap = { /* TODO */ }
+
             )
         }
 
         // Pantalla 2: Cursos
         composable(Routes.COURSES) {
-            CourseScreen() // Mostramos la pantalla de cursos que ya hicimos
+            CourseScreen(onNavigateBack = { navController.popBackStack() })
+
         }
 
         // ... Aquí añadiremos las otras rutas (Apoyos, Chatbot, etc.)
