@@ -1,10 +1,9 @@
 package com.semilladigital.app.core.data.di
 
-
 import android.content.Context
-import androidx.datastore.core.DataStore
-import androidx.datastore.preferences.core.Preferences
-import androidx.datastore.preferences.preferencesDataStore
+import android.content.SharedPreferences
+import androidx.security.crypto.EncryptedSharedPreferences
+import androidx.security.crypto.MasterKey
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -12,25 +11,27 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
 
-// Define el nombre de nuestro archivo de preferencias
-private const val SESSION_PREFERENCES = "session_prefs"
-
-// Extensión para crear el DataStore
-private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(
-    name = SESSION_PREFERENCES
-)
-
 @Module
 @InstallIn(SingletonComponent::class)
 object StorageModule {
 
     @Provides
     @Singleton
-    fun provideDataStore(@ApplicationContext context: Context): DataStore<Preferences> {
-        // Hilt proveerá el DataStore usando el contexto de la app
-        return context.dataStore
-    }
+    fun provideEncryptedSharedPreferences(
+        @ApplicationContext context: Context
+    ): SharedPreferences {
+        // Creamos la llave maestra para cifrar
+        val masterKey = MasterKey.Builder(context)
+            .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
+            .build()
 
-    // Hilt ya sabe cómo crear 'SessionStorage' porque
-    // le pusimos @Inject constructor y @Singleton
+        // Creamos el archivo de preferencias cifrado
+        return EncryptedSharedPreferences.create(
+            context,
+            "session_prefs_secure", // Nombre del archivo
+            masterKey,
+            EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+            EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
+        )
+    }
 }

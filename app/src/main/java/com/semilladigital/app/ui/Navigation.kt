@@ -16,14 +16,15 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.semilladigital.auth.ui.login.LoginScreen
-import com.semilladigital.app.core.data.storage.SessionStorage
-import com.semilladigital.app.ui.Routes.REGISTER
+import com.semilladigital.app.core.data.storage.SessionStorage // <-- Paquete correcto
 import com.semilladigital.dashboard.ui.DashboardScreen
 import com.semilladigital.courses.ui.CourseScreen
+import com.semilladigital.auth.ui.register.RegisterScreen // Importa el registro
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import javax.inject.Inject
 
-// Define los nombres de las rutas
 object Routes {
     const val SPLASH = "splash"
     const val LOGIN = "login"
@@ -32,27 +33,45 @@ object Routes {
     const val COURSES = "courses"
 }
 
-// ViewModel para la lógica de arranque (comprobar sesión)
 @HiltViewModel
 class MainViewModel @Inject constructor(
-    val sessionStorage: SessionStorage
-) : ViewModel()
+    private val sessionStorage: SessionStorage
+) : ViewModel() {
 
-// --- ESTA ES LA PANTALLA DE NAVEGACIÓN PRINCIPAL ---
+    // Usamos un StateFlow para comunicarle a la vista a dónde ir
+    private val _startDestination = MutableStateFlow<String?>(null)
+    val startDestination = _startDestination.asStateFlow()
+
+    init {
+        checkSession()
+    }
+
+    private fun checkSession() {
+        // Ahora usamos la función simple getAuthToken()
+        val token = sessionStorage.getAuthToken()
+
+        if (token.isNullOrEmpty()) {
+            _startDestination.value = Routes.LOGIN
+        } else {
+            _startDestination.value = Routes.DASHBOARD
+        }
+    }
+}
+
 @Composable
 fun AppNavigation() {
     val navController = rememberNavController()
 
     NavHost(
         navController = navController,
-    //    startDestination = Routes.SPLASH // El inicio SIEMPRE es el Splash
-    startDestination = Routes.SPLASH //AHORA SIEMPRE INICIAMOS EN EL LOGIN
+        startDestination = Routes.SPLASH
     ) {
-
+        // --- SPLASH ---
         composable(Routes.SPLASH) {
             SplashScreen(navController = navController)
         }
 
+        // --- LOGIN ---
         composable(Routes.LOGIN) {
             LoginScreen(
                 onLoginSuccess = {
@@ -61,27 +80,29 @@ fun AppNavigation() {
                     }
                 },
                 onNavigateToRegister = {
-                    navController.navigate(REGISTER)
+                    navController.navigate(Routes.REGISTER)
                 }
             )
         }
 
-        composable(REGISTER) {
-            com.semilladigital.auth.ui.register.RegisterScreen(
+        // --- REGISTRO ---
+        composable(Routes.REGISTER) {
+            RegisterScreen(
                 onBack = { navController.popBackStack() }
             )
         }
 
+        // --- DASHBOARD ---
         composable(Routes.DASHBOARD) {
             DashboardScreen(
                 onNavigateToCourses = { navController.navigate(Routes.COURSES) },
                 onNavigateToSupports = { /* TODO */ },
                 onNavigateToChatbot = { /* TODO */ },
                 onNavigateToGeomap = { /* TODO */ }
-                // TODO: Añadir botón de Logout
             )
         }
 
+        // --- CURSOS ---
         composable(Routes.COURSES) {
             CourseScreen(
                 onNavigateBack = { navController.popBackStack() }
@@ -90,35 +111,22 @@ fun AppNavigation() {
     }
 }
 
-// --- PANTALLA LÓGICA DE SPLASH (CORREGIDA) ---
 @Composable
 fun SplashScreen(
     navController: NavController,
     viewModel: MainViewModel = hiltViewModel()
 ) {
-    // --- ¡CAMBIO AQUÍ! ---
-    // 1. Usamos un valor inicial "centinela" que sea ÚNICO.
-    val authToken by viewModel.sessionStorage.authTokenFlow.collectAsState(initial = "LOADING")
+    val destination by viewModel.startDestination.collectAsState()
 
-    LaunchedEffect(authToken) {
-        // 2. Esperamos a que el valor deje de ser "LOADING"
-        if (authToken != "LOADING") {
-
-            // 3. Ahora la lógica es segura.
-            // Si el token es null (no existe) o está vacío, vamos a LOGIN
-            val route = if (authToken.isNullOrEmpty()) {
-                Routes.LOGIN
-            } else {
-                Routes.DASHBOARD // Sí hay token, vamos al Dashboard
-            }
-
+    LaunchedEffect(destination) {
+        // Apenas tengamos un destino (Login o Dashboard), navegamos
+        destination?.let { route ->
             navController.navigate(route) {
                 popUpTo(Routes.SPLASH) { inclusive = true }
             }
         }
     }
 
-    // 4. Mientras tanto, muestra un indicador de carga
     Box(
         modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center

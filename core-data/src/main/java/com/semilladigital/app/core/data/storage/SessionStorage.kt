@@ -1,44 +1,34 @@
 package com.semilladigital.app.core.data.storage
 
-import androidx.datastore.core.DataStore
-import androidx.datastore.preferences.core.Preferences
-import androidx.datastore.preferences.core.edit
-import androidx.datastore.preferences.core.stringPreferencesKey
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.map
+import android.content.SharedPreferences
 import javax.inject.Inject
 import javax.inject.Singleton
 
-@Singleton // Le decimos a Hilt que solo cree una instancia
+@Singleton
 class SessionStorage @Inject constructor(
-    // Hilt nos inyectará el DataStore que definiremos en el siguiente paso
-    private val dataStore: DataStore<Preferences>
+    private val sharedPreferences: SharedPreferences
 ) {
 
-    // 1. Define las "llaves" para guardar los datos
     companion object {
-        val AUTH_TOKEN_KEY = stringPreferencesKey("auth_token")
-        // Aquí podríamos guardar también el ID del usuario, nombre, etc.
+        private const val AUTH_TOKEN_KEY = "auth_token"
     }
 
-    // 2. Función para GUARDAR el token
-    suspend fun saveToken(token: String) {
-        dataStore.edit { preferences ->
-            preferences[AUTH_TOKEN_KEY] = token
-        }
+    // Guardar Token
+    fun saveToken(token: String) {
+        sharedPreferences.edit()
+            .putString(AUTH_TOKEN_KEY, token)
+            .apply()
     }
 
-    // 3. Función para LEER el token (como un Flujo)
-    // Usamos un Flow para que la app pueda "escuchar"
-    // los cambios en la sesión en tiempo real.
-    val authTokenFlow: Flow<String?> = dataStore.data.map { preferences ->
-        preferences[AUTH_TOKEN_KEY]
+    // --- ESTE ES EL MÉTODO QUE FALTABA ---
+    fun getAuthToken(): String? {
+        return sharedPreferences.getString(AUTH_TOKEN_KEY, null)
     }
 
-    // 4. Función para BORRAR el token (Logout)
-    suspend fun clearToken() {
-        dataStore.edit { preferences ->
-            preferences.remove(AUTH_TOKEN_KEY)
-        }
+    // Cerrar Sesión
+    fun clearToken() {
+        sharedPreferences.edit()
+            .remove(AUTH_TOKEN_KEY)
+            .apply()
     }
 }

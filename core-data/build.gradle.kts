@@ -67,6 +67,9 @@ dependencies {
     implementation(libs.hilt.android)
     kapt(libs.hilt.compiler)
 
+    //libreria de
+    implementation("androidx.security:security-crypto:1.1.0-alpha06")
+
     // Retrofit (para las llamadas a la API)
     implementation(libs.retrofit.core)
     implementation(libs.retrofit.converter.gson) // Para convertir JSON a Kotlin

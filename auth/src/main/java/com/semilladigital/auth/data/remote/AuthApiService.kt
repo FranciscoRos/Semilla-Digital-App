@@ -3,17 +3,21 @@ package com.semilladigital.auth.data.remote
 import com.semilladigital.auth.data.remote.dto.LoginRequestDto
 import com.semilladigital.auth.data.remote.dto.LoginResponseDto
 import com.semilladigital.auth.data.remote.dto.RegisterRequestDto
+import com.semilladigital.auth.data.remote.dto.UserDto
 import retrofit2.http.Body
+import retrofit2.http.GET
+import retrofit2.http.Header
 import retrofit2.http.POST
 
 interface AuthApiService {
 
     @POST("login")
-    suspend fun login(
-        @Body request: LoginRequestDto
-    ): LoginResponseDto
+    suspend fun login(@Body request: LoginRequestDto): LoginResponseDto
 
     @POST("registro")
-    @JvmSuppressWildcards // Necesario para Map<String, Any>
+    @JvmSuppressWildcards
     suspend fun register(@Body request: Map<String, Any>): Any
+
+    @GET("me")
+    suspend fun getMe(@Header("Authorization") token: String): UserDto
 }
