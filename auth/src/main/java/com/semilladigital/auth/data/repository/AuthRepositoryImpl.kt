@@ -95,7 +95,7 @@ class AuthRepositoryImpl @Inject constructor(
             "Arroz",
             "Ganado Bovino",
             "Pesca",
-            "Horticultura"
+            "Ganaderia"
         )
     }
 }

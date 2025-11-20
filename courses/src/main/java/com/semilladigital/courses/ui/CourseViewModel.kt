@@ -3,6 +3,7 @@ package com.semilladigital.courses.ui
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.semilladigital.app.core.data.storage.SessionStorage
 import com.semilladigital.courses.domain.model.Course
 import com.semilladigital.courses.domain.use_case.GetCoursesUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -11,7 +12,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-// Mantenemos los imports de java.time para la lógica de comparación
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
@@ -19,15 +19,14 @@ import javax.inject.Inject
 
 @HiltViewModel
 class CourseViewModel @Inject constructor(
-    private val getCoursesUseCase: GetCoursesUseCase
+    private val getCoursesUseCase: GetCoursesUseCase,
+    private val sessionStorage: SessionStorage
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(CourseState())
     val state: StateFlow<CourseState> = _state.asStateFlow()
 
     private var masterCourseList: List<Course> = emptyList()
-
-    // El formato de fecha de tu API
     private val apiDateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
 
     init {
@@ -60,11 +59,6 @@ class CourseViewModel @Inject constructor(
             is CourseEvent.OnHideFilterDialog -> {
                 _state.update { it.copy(isFilterDialogVisible = false) }
             }
-
-            // --- CAMBIO AQUÍ ---
-            // 1. Quitamos los eventos del DatePicker
-
-            // 2. Añadimos el nuevo evento
             is CourseEvent.OnDateFilterChanged -> {
                 _state.update { it.copy(selectedDateFilter = event.filter) }
                 applyFilters()
@@ -74,7 +68,7 @@ class CourseViewModel @Inject constructor(
 
     private fun applyFilters() {
         val currentState = _state.value
-        val today = LocalDate.now() // Obtenemos la fecha de "hoy"
+        val today = LocalDate.now()
 
         val filteredList = masterCourseList.filter { course ->
             val searchMatch = (course.titulo.contains(currentState.searchQuery, ignoreCase = true) ||
@@ -86,13 +80,11 @@ class CourseViewModel @Inject constructor(
             val modalidadMatch = (currentState.selectedModalidad == "Todas" ||
                     course.modalidad.equals(currentState.selectedModalidad, ignoreCase = true))
 
-            // --- CAMBIO AQUÍ: Lógica de filtro de fecha ---
             val courseDate = parseCourseDate(course.fechaCurso)
-
             val dateMatch = when (currentState.selectedDateFilter) {
                 "Próximos" -> courseDate == null || courseDate.isAfter(today) || courseDate.isEqual(today)
                 "Pasados" -> courseDate != null && courseDate.isBefore(today)
-                else -> true // "Todos"
+                else -> true
             }
 
             searchMatch && temaMatch && modalidadMatch && dateMatch
@@ -120,14 +112,22 @@ class CourseViewModel @Inject constructor(
                     val temas = courses.mapNotNull { it.tema }.distinct().toMutableList()
                     temas.add(0, "Todos")
 
+                    // Lógica de Recomendación basada en actividades guardadas
+                    val userActivities = sessionStorage.getActividades()
+
+                    val recommended = courses.filter { course ->
+                        course.tema != null && userActivities.any { activity ->
+                            activity.equals(course.tema, ignoreCase = true)
+                        }
+                    }
+
                     _state.update {
                         it.copy(
                             isLoading = false,
                             courses = courses,
+                            recommendedCourses = recommended,
                             availableTemas = temas,
                             error = null
-                            // Ya no necesitamos setear filtros default,
-                            // el State se encarga
                         )
                     }
                 },
@@ -136,6 +136,7 @@ class CourseViewModel @Inject constructor(
                         it.copy(
                             isLoading = false,
                             courses = emptyList(),
+                            recommendedCourses = emptyList(),
                             error = error.message ?: "Error desconocido"
                         )
                     }

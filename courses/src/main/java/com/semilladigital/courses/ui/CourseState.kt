@@ -1,25 +1,26 @@
 package com.semilladigital.courses.ui
 
 import com.semilladigital.courses.domain.model.Course
-// import java.time.LocalDate // Ya no lo necesitamos aquí
 
 data class CourseState(
     val isLoading: Boolean = false,
-    val courses: List<Course> = emptyList(), // La lista *filtrada*
+
+    val courses: List<Course> = emptyList(),
+    val recommendedCourses: List<Course> = emptyList(),
+
     val error: String? = null,
     val searchQuery: String = "",
 
-    val selectedCourse: Course? = null, // El curso que se muestra en el modal
+    val selectedCourse: Course? = null,
 
     val availableTemas: List<String> = emptyList(),
-    val selectedTema: String = "Todos", // El filtro de tema actual
+    val selectedTema: String = "Todos",
 
     val availableModalidades: List<String> = listOf("Todas", "En Línea", "Presencial"),
-    val selectedModalidad: String = "Todas", // El filtro de modalidad actual
+    val selectedModalidad: String = "Todas",
 
     val isFilterDialogVisible: Boolean = false,
 
-
     val availableDateFilters: List<String> = listOf("Todos", "Próximos", "Pasados"),
-    val selectedDateFilter: String = "Todos" // Default a "Todos"
+    val selectedDateFilter: String = "Todos"
 )
