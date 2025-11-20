@@ -45,7 +45,8 @@ fun AppNavigation() {
 
     NavHost(
         navController = navController,
-        startDestination = Routes.SPLASH // El inicio SIEMPRE es el Splash
+    //    startDestination = Routes.SPLASH // El inicio SIEMPRE es el Splash
+    startDestination = Routes.SPLASH //AHORA SIEMPRE INICIAMOS EN EL LOGIN
     ) {
 
         composable(Routes.SPLASH) {

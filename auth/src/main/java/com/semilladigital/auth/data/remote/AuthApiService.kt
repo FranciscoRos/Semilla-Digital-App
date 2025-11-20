@@ -14,5 +14,6 @@ interface AuthApiService {
     ): LoginResponseDto
 
     @POST("registro")
-    suspend fun register(@Body request: RegisterRequestDto): Any
+    @JvmSuppressWildcards // Necesario para Map<String, Any>
+    suspend fun register(@Body request: Map<String, Any>): Any
 }
