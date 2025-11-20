@@ -3,10 +3,15 @@ package com.semilladigital.auth.domain.repository
 import com.semilladigital.auth.domain.model.AuthResult
 
 interface AuthRepository {
-
-    // Función de Login
     suspend fun login(correo: String, contrasena: String): Result<AuthResult>
 
-    // Aquí pondríamos la función de registro después
-    // suspend fun register(...)
+    // --- NUEVO: Función para registro ---
+    suspend fun register(
+        nombreCompleto: String,
+        correo: String,
+        contrasena: String,
+        curp: String,
+        localidad: String,
+        tipoCultivo: String
+    ): Result<Unit>
 }

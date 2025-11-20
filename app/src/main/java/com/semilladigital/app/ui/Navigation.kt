@@ -17,6 +17,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.semilladigital.auth.ui.login.LoginScreen
 import com.semilladigital.app.core.data.storage.SessionStorage
+import com.semilladigital.app.ui.Routes.REGISTER
 import com.semilladigital.dashboard.ui.DashboardScreen
 import com.semilladigital.courses.ui.CourseScreen
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -59,13 +60,15 @@ fun AppNavigation() {
                     }
                 },
                 onNavigateToRegister = {
-                    navController.navigate(Routes.REGISTER)
+                    navController.navigate(REGISTER)
                 }
             )
         }
 
-        composable(Routes.REGISTER) {
-            // RegisterScreen(...)
+        composable(REGISTER) {
+            com.semilladigital.auth.ui.register.RegisterScreen(
+                onBack = { navController.popBackStack() }
+            )
         }
 
         composable(Routes.DASHBOARD) {
