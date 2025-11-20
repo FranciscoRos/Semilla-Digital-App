@@ -48,7 +48,7 @@ class LoginViewModel @Inject constructor(
                 onSuccess = { authResult ->
                     // --- 3. ¡CAMBIO AQUÍ! ---
                     // Guardamos el token en DataStore
-                    sessionStorage.saveToken(authResult.token)
+                   // sessionStorage.saveToken(authResult.token)
 
                     // (Opcional: guardar también datos del usuario si quieres)
 

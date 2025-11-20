@@ -29,13 +29,14 @@ class DashboardViewModel @Inject constructor(
 
     init {
         loadUserProfile()
+
     }
 
     private fun loadUserProfile() {
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true) }
 
-            val token = sessionStorage.getAuthToken()
+            val token = sessionStorage.getToken()
 
             if (token != null) {
                 val result = authRepository.getUserProfile(token)
@@ -58,10 +59,11 @@ class DashboardViewModel @Inject constructor(
                 _state.update { it.copy(isLoading = false, error = "No hay sesión") }
             }
         }
-    }
+}
 
     fun onLogout() {
-        sessionStorage.clearToken()
+        sessionStorage.clearSession()
         // La navegación global reaccionará al cambio en SessionStorage
     }
+
 }

@@ -48,7 +48,7 @@ class MainViewModel @Inject constructor(
 
     private fun checkSession() {
         // Ahora usamos la función simple getAuthToken()
-        val token = sessionStorage.getAuthToken()
+        val token = sessionStorage.getToken()
 
         if (token.isNullOrEmpty()) {
             _startDestination.value = Routes.LOGIN

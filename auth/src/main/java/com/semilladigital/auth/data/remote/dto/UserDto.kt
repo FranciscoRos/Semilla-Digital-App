@@ -24,8 +24,9 @@ data class UserDto(
     @SerializedName("Estatus")
     val estatus: String?,
 
-    @SerializedName("Tipo")
-    val tipo: String?
+    @SerializedName("Actividades")
+    val actividades: List<String>?,
+
 )
 
 data class RolDto(
