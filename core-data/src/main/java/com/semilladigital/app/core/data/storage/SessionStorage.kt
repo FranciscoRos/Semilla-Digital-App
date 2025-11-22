@@ -19,7 +19,8 @@ class SessionStorage @Inject constructor(
         private const val KEY_EMAIL = "user_email"
         private const val KEY_ROL = "user_rol"
         private const val KEY_ESTATUS = "user_estatus"
-        private const val KEY_ACTIVIDADES = "user_actividades"
+
+        private const val KEY_INTERESES = "user_intereses_keywords"
     }
 
     // --- FLOWS ---
@@ -40,11 +41,9 @@ class SessionStorage @Inject constructor(
         apellidos: String,
         email: String,
         rol: String,
-        estatus: String,
-        actividades: List<String>
+        estatus: String
+
     ) {
-        //Convertimos la lista a un String separado por comas (ej: "maíz,frijol")
-        val actividadesString = actividades.joinToString(",")
         sharedPreferences.edit()
             .putString(KEY_TOKEN, token)
             .putString(KEY_USER_ID, id)
@@ -53,13 +52,28 @@ class SessionStorage @Inject constructor(
             .putString(KEY_EMAIL, email)
             .putString(KEY_ROL, rol)
             .putString(KEY_ESTATUS, estatus)
-            .putString(KEY_ACTIVIDADES, actividadesString)
             .apply()
 
         // Actualizar memoria
         _authTokenFlow.value = token
         _userNameFlow.value = nombre
         _userRolFlow.value = rol
+    }
+
+    fun saveIntereses(palabrasClave: List<String>) {
+
+        val cleanList = palabrasClave.filter { it.isNotBlank() }.distinct()
+        val stringSet = cleanList.joinToString(",")
+
+        sharedPreferences.edit()
+            .putString(KEY_INTERESES, stringSet)
+            .apply()
+    }
+
+    fun getIntereses(): List<String> {
+        val savedString = sharedPreferences.getString(KEY_INTERESES, "") ?: ""
+        if (savedString.isBlank()) return emptyList()
+        return savedString.split(",").map { it.trim() }
     }
 
     // --- OBTENER DATOS ---
@@ -72,12 +86,6 @@ class SessionStorage @Inject constructor(
     fun getRol() = sharedPreferences.getString(KEY_ROL, "")
     fun getEstatus() = sharedPreferences.getString(KEY_ESTATUS, "")
 
-    // Recuperamos como Lista real
-    fun getActividades(): List<String> {
-        val savedString = sharedPreferences.getString(KEY_ACTIVIDADES, "") ?: ""
-        if (savedString.isBlank()) return emptyList()
-        return savedString.split(",").map { it.trim() }
-    }
     // --- CERRAR SESIÓN ---
     fun clearSession() {
         sharedPreferences.edit().clear().apply()

@@ -1,10 +1,18 @@
 package com.semilladigital.auth.domain.model
 
-// Modelo "limpio" del usuario para la app
+
 data class User(
     val id: String,
     val nombre: String,
+    val apellido1: String,
+    val apellido2: String,
     val correo: String,
-    val nombreRol: String,
-    val estatus: String
+    val estatus: String,
+    // Lista de usos ya procesada en el dominio
+    val usos: List<UsoItem> = emptyList()
+)
+
+data class UsoItem(
+    val usoGeneral: String,
+    val usosEspecificos: List<String>
 )

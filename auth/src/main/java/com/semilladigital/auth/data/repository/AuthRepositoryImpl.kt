@@ -1,113 +1,110 @@
 package com.semilladigital.auth.data.repository
 
-import com.semilladigital.app.core.data.storage.SessionStorage
 import com.semilladigital.auth.data.remote.AuthApiService
 import com.semilladigital.auth.data.remote.dto.LoginRequestDto
+import com.semilladigital.auth.data.remote.dto.RegisterRequestDto
+import com.semilladigital.auth.data.remote.dto.UsuarioRegistroDataDto
+import com.semilladigital.auth.data.remote.dto.ParcelaRegistroDto
 import com.semilladigital.auth.data.remote.dto.UserDto
 import com.semilladigital.auth.domain.model.AuthResult
 import com.semilladigital.auth.domain.model.User
+import com.semilladigital.auth.domain.model.UsoItem
 import com.semilladigital.auth.domain.repository.AuthRepository
 import javax.inject.Inject
 
 class AuthRepositoryImpl @Inject constructor(
-    private val apiService: AuthApiService,
-    private val sessionStorage: SessionStorage
+    private val api: AuthApiService
 ) : AuthRepository {
 
     override suspend fun login(correo: String, contrasena: String): Result<AuthResult> {
         return try {
-            val requestDto = LoginRequestDto(correo = correo, contrasena = contrasena)
-            val response = apiService.login(requestDto)
-
-            if (response.usuario == null) throw Exception("Usuario nulo en respuesta")
-
-            val userDto = response.usuario
-
-            val safeRole = userDto.rol?.firstOrNull()?.nombreRol ?: "Productor"
-            val apellidos = "${userDto.apellido1 ?: ""} ${userDto.apellido2 ?: ""}".trim()
-
-            // --- DUMMY DATA: Usamos datos falsos por el momento ---
-            val actividadesDummy = getDummyActividades()
-
-            sessionStorage.saveSession(
-                token = response.token,
-                id = userDto.id ?: "",
-                nombre = userDto.nombre ?: "Usuario",
-                apellidos = apellidos,
-                email = userDto.correo ?: "",
-                rol = safeRole,
-                estatus = userDto.estatus ?: "Activo",
-                actividades = actividadesDummy // <--- Inyectamos la lista falsa
-            )
-
-            val authResult = AuthResult(
-                user = response.usuario.toUser(),
-                token = response.token
-            )
+            val response = api.login(LoginRequestDto(correo, contrasena))
+            val userDomain = response.usuario.toDomain()
+            val authResult = AuthResult(user = userDomain, token = response.token)
             Result.success(authResult)
         } catch (e: Exception) {
-            Result.failure(e)
-        }
-    }
-
-    override suspend fun register(registrationData: Map<String, Any>): Result<Unit> {
-        return try {
-            apiService.register(registrationData)
-            Result.success(Unit)
-        } catch (e: Exception) {
+            e.printStackTrace()
             Result.failure(e)
         }
     }
 
     override suspend fun getUserProfile(token: String): Result<User> {
         return try {
-            val bearerToken = "Bearer $token"
-            val userDto = apiService.getMe(bearerToken)
-
-            val apellidos = "${userDto.apellido1 ?: ""} ${userDto.apellido2 ?: ""}".trim()
-            val safeRole = userDto.rol?.firstOrNull()?.nombreRol ?: "Usuario"
-
-            // --- DUMMY DATA: También aquí para mantener la consistencia ---
-            val actividadesDummy = getDummyActividades()
-
-            sessionStorage.saveSession(
-                token = token,
-                id = userDto.id ?: "",
-                nombre = userDto.nombre ?: "",
-                apellidos = apellidos,
-                email = userDto.correo ?: "",
-                rol = safeRole,
-                estatus = userDto.estatus ?: "Activo",
-                actividades = actividadesDummy // <--- Inyectamos la lista falsa
-            )
-
-            Result.success(userDto.toUser())
+            val userDto = api.me("Bearer $token")
+            val userDomain = userDto.toDomain()
+            Result.success(userDomain)
         } catch (e: Exception) {
+            e.printStackTrace()
             Result.failure(e)
         }
     }
 
-    // --- FUNCIÓN DUMMY (Bórrala cuando el backend esté listo) ---
-    private fun getDummyActividades(): List<String> {
-        return listOf(
-            "Maíz",
-            "Frijol",
-            "Arroz",
-            "Ganado Bovino",
-            "Pesca",
-            "Ganaderia"
+    // --- AQUÍ CONSTRUIMOS EL JSON COMPLEJO ---
+    override suspend fun register(registrationData: Map<String, Any>): Result<Unit> {
+        return try {
+            // 1. Extraer datos del mapa plano (UI)
+            val nombre = registrationData["Nombre"] as? String ?: ""
+            val correo = registrationData["Correo"] as? String ?: ""
+            val contrasena = registrationData["Contrasena"] as? String ?: ""
+            val curp = registrationData["Curp"] as? String ?: ""
+            val telefono = registrationData["Telefono"] as? String ?: ""
+            val localidad = registrationData["Localidad"] as? String ?: "" // Usado como Domicilio
+
+            // Datos de Parcela
+            val lat = registrationData["Latitud"] as? Double ?: 0.0
+            val lng = registrationData["Longitud"] as? Double ?: 0.0
+            val tipoCultivo = registrationData["TipoCultivo"] as? String ?: ""
+            val hectareas = registrationData["Hectareas"] as? String ?: "0"
+
+            // 2. Construir la Parcela (Lista de Coordenadas [[lat, lng]])
+            val parcelaDto = ParcelaRegistroDto(
+                nombre = "Parcela de $nombre",
+                coordenadas = listOf(listOf(lat, lng)),
+                localidad = localidad,
+                area = hectareas,
+                usos = tipoCultivo
+            )
+
+            // 3. Construir el Usuario anidado
+            val usuarioDto = UsuarioRegistroDataDto(
+                nombre = nombre,
+                apellido1 = "", // Enviamos vacío como se indicó
+                apellido2 = "",
+                correo = correo,
+                contrasena = contrasena,
+                curp = curp,
+                telefono = telefono,
+                domicilio = localidad, // Mapeamos Localidad -> Domicilio
+                parcela = listOf(parcelaDto) // Lista de parcelas
+            )
+
+            // 4. Crear el Request Final
+            val request = RegisterRequestDto(usuario = usuarioDto)
+
+            // 5. Enviar
+            api.register(request)
+
+            Result.success(Unit)
+        } catch (e: Exception) {
+            e.printStackTrace()
+            Result.failure(e)
+        }
+    }
+
+    private fun UserDto.toDomain(): User {
+        return User(
+            id = id ?: "",
+            nombre = nombre ?: "",
+            apellido1 = apellido1 ?: "",
+            apellido2 = apellido2 ?: "",
+            correo = correo ?: "",
+            estatus = estatus ?: "Activo",
+            usos = usos?.map { dto ->
+                UsoItem(
+                    usoGeneral = dto.usoGeneral ?: "",
+                    usosEspecificos = dto.usosEspecificos ?: emptyList()
+                )
+            } ?: emptyList()
         )
     }
-}
-
-private fun UserDto.toUser(): User {
-    val safeId = this.id ?: "sin_id"
-
-    return User(
-        id = safeId,
-        nombre = this.nombre ?: "Usuario",
-        correo = this.correo ?: "",
-        nombreRol = this.rol?.firstOrNull()?.nombreRol ?: "Productor",
-        estatus = this.estatus ?: "Desconocido"
-    )
 }

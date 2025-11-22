@@ -29,7 +29,6 @@ class DashboardViewModel @Inject constructor(
 
     init {
         loadUserProfile()
-
     }
 
     private fun loadUserProfile() {
@@ -43,6 +42,27 @@ class DashboardViewModel @Inject constructor(
 
                 result.fold(
                     onSuccess = { user ->
+                        // 1. LÓGICA DE APLANADO (FLATTEN)
+                        // Extraemos todas las palabras clave del usuario
+                        val palabrasClave = mutableListOf<String>()
+
+                        user.usos.forEach { uso ->
+                            // Guardamos el general (ej: "Agrícola")
+                            if (uso.usoGeneral.isNotBlank()) {
+                                palabrasClave.add(uso.usoGeneral)
+                            }
+                            // Guardamos los específicos (ej: "Cultivo de tomate")
+                            uso.usosEspecificos.forEach { especifico ->
+                                if (especifico.isNotBlank()) {
+                                    palabrasClave.add(especifico)
+                                }
+                            }
+                        }
+
+                        // 2. GUARDAMOS EN SESSION STORAGE (Para que Cursos lo use después)
+                        sessionStorage.saveIntereses(palabrasClave)
+
+                        // 3. ACTUALIZAMOS UI
                         _state.update {
                             it.copy(
                                 isLoading = false,
@@ -59,11 +79,9 @@ class DashboardViewModel @Inject constructor(
                 _state.update { it.copy(isLoading = false, error = "No hay sesión") }
             }
         }
-}
+    }
 
     fun onLogout() {
         sessionStorage.clearSession()
-        // La navegación global reaccionará al cambio en SessionStorage
     }
-
 }

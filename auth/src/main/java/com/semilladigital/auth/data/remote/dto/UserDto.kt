@@ -24,9 +24,8 @@ data class UserDto(
     @SerializedName("Estatus")
     val estatus: String?,
 
-    @SerializedName("Actividades")
-    val actividades: List<String>?,
-
+     @SerializedName("Usos")
+    val usos: List<UsoDto>?
 )
 
 data class RolDto(
@@ -35,4 +34,12 @@ data class RolDto(
 
     @SerializedName("NombreRol")
     val nombreRol: String?
+)
+
+data class UsoDto(
+    @SerializedName("UsoGeneral")
+    val usoGeneral: String?,
+
+    @SerializedName("UsosEspecificos")
+    val usosEspecificos: List<String>?
 )

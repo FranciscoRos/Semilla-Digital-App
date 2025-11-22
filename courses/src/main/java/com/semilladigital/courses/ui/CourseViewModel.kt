@@ -20,7 +20,7 @@ import javax.inject.Inject
 @HiltViewModel
 class CourseViewModel @Inject constructor(
     private val getCoursesUseCase: GetCoursesUseCase,
-    private val sessionStorage: SessionStorage
+    private val sessionStorage: SessionStorage // Inyectamos para leer intereses
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(CourseState())
@@ -30,7 +30,7 @@ class CourseViewModel @Inject constructor(
     private val apiDateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
 
     init {
-        loadCourses()
+        loadData()
     }
 
     fun onEvent(event: CourseEvent) {
@@ -102,44 +102,48 @@ class CourseViewModel @Inject constructor(
         }
     }
 
-    private fun loadCourses() {
+    private fun loadData() {
+        _state.update { it.copy(isLoading = true) }
+
         viewModelScope.launch {
-            _state.update { it.copy(isLoading = true) }
-            val result = getCoursesUseCase()
+            val result = getCoursesUseCase() // Obtiene TODOS los cursos del backend
+
             result.fold(
                 onSuccess = { courses ->
                     masterCourseList = courses
                     val temas = courses.mapNotNull { it.tema }.distinct().toMutableList()
                     temas.add(0, "Todos")
 
-                    // Lógica de Recomendación basada en actividades guardadas
-                    val userActivities = sessionStorage.getActividades()
+                    // --- FILTRADO LOCAL "PARA TI" ---
+                    // 1. Leemos la lista plana de intereses que guardó DashboardViewModel
+                    val interesesUsuario = sessionStorage.getIntereses()
 
-                    val recommended = courses.filter { course ->
-                        course.tema != null && userActivities.any { activity ->
-                            activity.equals(course.tema, ignoreCase = true)
+                    // 2. Filtramos localmente
+                    val recomendados = if (interesesUsuario.isNotEmpty()) {
+                        courses.filter { course ->
+                            interesesUsuario.any { palabra ->
+                                // Buscamos si la palabra clave (ej. "Tomate") está en título, descripción o tema
+                                course.titulo.contains(palabra, ignoreCase = true) ||
+                                        course.descripcion.contains(palabra, ignoreCase = true) ||
+                                        (course.tema != null && course.tema.contains(palabra, ignoreCase = true))
+                            }
                         }
+                    } else {
+                        // Si no hay intereses, mostramos los 5 más recientes como fallback
+                        courses.take(5)
                     }
 
                     _state.update {
                         it.copy(
-                            isLoading = false,
                             courses = courses,
-                            recommendedCourses = recommended,
+                            recommendedCourses = recomendados,
                             availableTemas = temas,
-                            error = null
+                            isLoading = false
                         )
                     }
                 },
                 onFailure = { error ->
-                    _state.update {
-                        it.copy(
-                            isLoading = false,
-                            courses = emptyList(),
-                            recommendedCourses = emptyList(),
-                            error = error.message ?: "Error desconocido"
-                        )
-                    }
+                    _state.update { it.copy(error = error.message, isLoading = false) }
                 }
             )
         }

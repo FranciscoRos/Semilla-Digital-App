@@ -2,7 +2,6 @@ package com.semilladigital.auth.data.remote.dto
 
 import com.google.gson.annotations.SerializedName
 
-// Estructura exacta para PerfilRegistroController
 data class RegisterRequestDto(
     @SerializedName("Usuario")
     val usuario: UsuarioRegistroDataDto
@@ -13,7 +12,7 @@ data class UsuarioRegistroDataDto(
     val nombre: String,
 
     @SerializedName("Apellido1")
-    val apellido1: String = "", // La UI pide nombre completo, aquí dividiremos o enviaremos vacío
+    val apellido1: String = "",
 
     @SerializedName("Apellido2")
     val apellido2: String = "",
@@ -31,9 +30,8 @@ data class UsuarioRegistroDataDto(
     val telefono: String = "",
 
     @SerializedName("Domicilio")
-    val domicilio: String, // Usaremos el campo 'Localidad' de la UI aquí
+    val domicilio: String, // Mapearemos 'Localidad' aquí
 
-    // Campos requeridos por el backend (enviamos defaults)
     @SerializedName("FechaNacimiento")
     val fechaNacimiento: String = "2000-01-01",
 
@@ -43,6 +41,9 @@ data class UsuarioRegistroDataDto(
     @SerializedName("Rfc")
     val rfc: String = "",
 
+    @SerializedName("Tipo")
+    val tipo: String = "Usuario",
+
     @SerializedName("Parcela")
     val parcela: List<ParcelaRegistroDto> = emptyList()
 )
@@ -51,10 +52,8 @@ data class ParcelaRegistroDto(
     @SerializedName("nombre")
     val nombre: String = "Parcela Principal",
 
-    // Coordenadas: Lista de [lat, lng]
-    // El controlador espera: 'Coordenadas' => $parcela['coordenadas']
     @SerializedName("coordenadas")
-    val coordenadas: List<List<Double>>,
+    val coordenadas: List<List<Double>>, // [[lat, lng]]
 
     @SerializedName("ciudad")
     val ciudad: String = "",
@@ -72,5 +71,5 @@ data class ParcelaRegistroDto(
     val area: String = "0",
 
     @SerializedName("usos")
-    val usos: String // Aquí enviaremos el "Tipo de Cultivo"
+    val usos: String // Aquí va el "Tipo de Cultivo"
 )
