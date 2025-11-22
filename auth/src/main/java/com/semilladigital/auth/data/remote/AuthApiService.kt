@@ -21,7 +21,7 @@ interface AuthApiService {
         @Header("Authorization") token: String
     ): UserDto
 
-    @POST("register")
+    @POST("registro")
     suspend fun register(
         @Body request: RegisterRequestDto
     )
