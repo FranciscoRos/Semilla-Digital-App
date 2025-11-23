@@ -2,6 +2,7 @@ package com.semilladigital.auth.ui.login
 
 import android.app.Activity
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
@@ -31,11 +32,16 @@ fun LoginScreen(
     val viewModel: LoginViewModel = hiltViewModel()
     val state by viewModel.state.collectAsStateWithLifecycle()
 
+    // Configuración correcta para modo claro/oscuro en Status Bar
     val view = LocalView.current
+    val darkTheme = isSystemInDarkTheme()
+
     if (!view.isInEditMode) {
         SideEffect {
             val window = (view.context as Activity).window
-            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = true
+            // Si !darkTheme (es claro), isAppearanceLightStatusBars = true (iconos oscuros/negros)
+            // Si darkTheme (es oscuro), isAppearanceLightStatusBars = false (iconos claros/blancos)
+            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = darkTheme
         }
     }
 
@@ -54,6 +60,11 @@ fun LoginScreen(
                     .padding(16.dp),
                 contentAlignment = Alignment.TopCenter
             ) {
+                //modo escuro arriba
+                val view = LocalView.current
+                val window = (view.context as Activity).window
+                WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = true
+
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(16.dp)
