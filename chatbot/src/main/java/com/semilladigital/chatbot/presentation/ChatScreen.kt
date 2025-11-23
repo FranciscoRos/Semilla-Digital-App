@@ -18,6 +18,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -187,6 +188,7 @@ fun ChatBubbleItem(message: com.semilladigital.chatbot.model.ChatMessage) {
 
 @Composable
 fun ChatInputArea(isLoading: Boolean, onSend: (String) -> Unit) {
+    val keyboardController = LocalSoftwareKeyboardController.current
     var text by remember { mutableStateOf("") }
 
     Surface(
@@ -222,6 +224,7 @@ fun ChatInputArea(isLoading: Boolean, onSend: (String) -> Unit) {
             FilledIconButton(
                 onClick = {
                     if (text.isNotBlank()) {
+                        keyboardController?.hide()
                         onSend(text)
                         text = ""
                     }
@@ -240,7 +243,7 @@ fun ChatInputArea(isLoading: Boolean, onSend: (String) -> Unit) {
         }
     }
 }
-//
+
 @Composable
 fun TypingIndicator() {
     Row(
