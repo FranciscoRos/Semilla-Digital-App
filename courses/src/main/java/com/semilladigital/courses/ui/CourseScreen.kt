@@ -55,7 +55,7 @@ fun CourseScreen(
                     course = selectedCourse,
                     onDismiss = { viewModel.onEvent(CourseEvent.OnHideDetails) },
                     onGoToMap = { lat, lon ->
-                        val gmmIntentUri = Uri.parse("google.navigation:q=$lat,$lon")
+                        val gmmIntentUri = Uri.parse("geo:$lat,$lon?q=$lat,$lon")
                         val mapIntent = Intent(Intent.ACTION_VIEW, gmmIntentUri)
                         mapIntent.setPackage("com.google.android.apps.maps")
                         context.startActivity(mapIntent)

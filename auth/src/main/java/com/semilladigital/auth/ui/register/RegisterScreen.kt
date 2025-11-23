@@ -1,5 +1,6 @@
 package com.semilladigital.auth.ui.register
 
+import android.app.Activity
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -16,11 +17,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.view.WindowCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.semilladigital.app.core.ui.SemillaDigitalTheme
@@ -30,6 +33,8 @@ fun RegisterScreen(
     onBack: () -> Unit,
     viewModel: RegisterViewModel = hiltViewModel()
 ) {
+
+
     val state by viewModel.state.collectAsStateWithLifecycle()
 
     LaunchedEffect(state.isRegistered) { if (state.isRegistered) onBack() }
@@ -45,6 +50,7 @@ fun RegisterScreen(
 
     // --- PANTALLA DEL FORMULARIO ---
     SemillaDigitalTheme {
+
         Scaffold(containerColor = Color(0xFFF3F4F6)) { padding ->
             LazyColumn(
                 modifier = Modifier
@@ -64,6 +70,11 @@ fun RegisterScreen(
                         Spacer(Modifier.width(8.dp))
                         Text("Volver al Login", fontWeight = FontWeight.Medium)
                     }
+
+                    //modo escuro arriba
+                    val view = LocalView.current
+                    val window = (view.context as Activity).window
+                    WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = true
 
                     Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
                         Text("Registro de usuario y Parcelas", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
