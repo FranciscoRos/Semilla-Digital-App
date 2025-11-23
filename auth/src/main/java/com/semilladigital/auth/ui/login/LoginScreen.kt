@@ -1,33 +1,44 @@
 package com.semilladigital.auth.ui.login
 
 import android.app.Activity
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.semilladigital.app.core.ui.SemillaDigitalTheme // Importa tu tema
+import com.semilladigital.app.core.ui.SemillaDigitalTheme
+import com.semilladigital.app.core.ui.R
 
-@OptIn(ExperimentalMaterial3Api::class) // Para Scaffold
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LoginScreen(
-    onLoginSuccess: () -> Unit, // Callback para navegar al Dashboard
-    onNavigateToRegister: () -> Unit // Callback para navegar al Registro
+    onLoginSuccess: () -> Unit,
+    onNavigateToRegister: () -> Unit
 ) {
     val viewModel: LoginViewModel = hiltViewModel()
     val state by viewModel.state.collectAsStateWithLifecycle()
 
-    // Observa el estado 'loginSuccess' para navegar
+    val view = LocalView.current
+    if (!view.isInEditMode) {
+        SideEffect {
+            val window = (view.context as Activity).window
+            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = true
+        }
+    }
+
     LaunchedEffect(state.loginSuccess) {
         if (state.loginSuccess) {
             onLoginSuccess()
@@ -41,18 +52,22 @@ fun LoginScreen(
                     .fillMaxSize()
                     .padding(paddingValues)
                     .padding(16.dp),
-                contentAlignment = Alignment.Center
+                contentAlignment = Alignment.TopCenter
             ) {
-                val view = LocalView.current
-                val window = (view.context as Activity).window
-                WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = true
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
+                    Spacer(modifier = Modifier.height(32.dp))
+
+                    Image(
+                        painter = painterResource(id = R.drawable.semilla_digital_logo_round),
+                        contentDescription = "Logo",
+                        modifier = Modifier.size(200.dp)
+                    )
+
                     Text("Iniciar Sesión", style = MaterialTheme.typography.headlineMedium)
 
-                    // Campo de Email
                     OutlinedTextField(
                         value = state.email,
                         onValueChange = { viewModel.onEvent(LoginEvent.OnEmailChanged(it)) },
@@ -62,7 +77,6 @@ fun LoginScreen(
                         singleLine = true
                     )
 
-                    // Campo de Contraseña
                     OutlinedTextField(
                         value = state.contrasena,
                         onValueChange = { viewModel.onEvent(LoginEvent.OnPasswordChanged(it)) },
@@ -73,25 +87,18 @@ fun LoginScreen(
                         singleLine = true
                     )
 
-                    // --- INICIO DE LA CORRECCIÓN ---
-                    // 1. Crea una copia local "safe" de la variable de error
                     val error = state.error
-
-                    // 2. Comprueba la copia local
                     if (error != null) {
                         Text(
-                            // 3. Usa la copia local (ahora 100% no nula)
                             text = error,
                             color = MaterialTheme.colorScheme.error,
                             modifier = Modifier.padding(top = 8.dp)
                         )
                     }
-                    // --- FIN DE LA CORRECCIÓN ---
 
-                    // Botón de Login
                     Button(
                         onClick = { viewModel.onEvent(LoginEvent.OnLoginClick) },
-                        enabled = !state.isLoading, // Desactivado si está cargando
+                        enabled = !state.isLoading,
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         if (state.isLoading) {
@@ -105,7 +112,6 @@ fun LoginScreen(
                         }
                     }
 
-                    // Botón de Registro
                     TextButton(onClick = onNavigateToRegister) {
                         Text("¿No tienes cuenta? Regístrate")
                     }
