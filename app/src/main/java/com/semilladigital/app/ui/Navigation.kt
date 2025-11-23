@@ -16,10 +16,12 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.semilladigital.auth.ui.login.LoginScreen
-import com.semilladigital.app.core.data.storage.SessionStorage // <-- Paquete correcto
+import com.semilladigital.app.core.data.storage.SessionStorage
 import com.semilladigital.dashboard.ui.DashboardScreen
 import com.semilladigital.courses.ui.CourseScreen
-import com.semilladigital.auth.ui.register.RegisterScreen // Importa el registro
+import com.semilladigital.auth.ui.register.RegisterScreen
+// IMPORTANTE: Importar la pantalla del chatbot
+import com.semilladigital.chatbot.presentation.ChatScreen
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -31,6 +33,7 @@ object Routes {
     const val REGISTER = "register"
     const val DASHBOARD = "dashboard"
     const val COURSES = "courses"
+    const val CHATBOT = "chatbot" // <--- NUEVA RUTA
 }
 
 @HiltViewModel
@@ -38,7 +41,6 @@ class MainViewModel @Inject constructor(
     private val sessionStorage: SessionStorage
 ) : ViewModel() {
 
-    // Usamos un StateFlow para comunicarle a la vista a dónde ir
     private val _startDestination = MutableStateFlow<String?>(null)
     val startDestination = _startDestination.asStateFlow()
 
@@ -47,9 +49,7 @@ class MainViewModel @Inject constructor(
     }
 
     private fun checkSession() {
-        // Ahora usamos la función simple getAuthToken()
         val token = sessionStorage.getToken()
-
         if (token.isNullOrEmpty()) {
             _startDestination.value = Routes.LOGIN
         } else {
@@ -96,9 +96,10 @@ fun AppNavigation() {
         composable(Routes.DASHBOARD) {
             DashboardScreen(
                 onNavigateToCourses = { navController.navigate(Routes.COURSES) },
-                onNavigateToSupports = { /* TODO */ },
-                onNavigateToChatbot = { /* TODO */ },
-                onNavigateToGeomap = { /* TODO */ }
+                onNavigateToSupports = { /* TODO: Futuro */ },
+                // CONECTAMOS EL BOTÓN AQUÍ
+                onNavigateToChatbot = { navController.navigate(Routes.CHATBOT) },
+                onNavigateToGeomap = { /* TODO: Futuro */ }
             )
         }
 
@@ -107,6 +108,11 @@ fun AppNavigation() {
             CourseScreen(
                 onNavigateBack = { navController.popBackStack() }
             )
+        }
+
+        // --- CHATBOT --- (NUEVO BLOQUE)
+        composable(Routes.CHATBOT) {
+            ChatScreen()
         }
     }
 }
@@ -119,7 +125,6 @@ fun SplashScreen(
     val destination by viewModel.startDestination.collectAsState()
 
     LaunchedEffect(destination) {
-        // Apenas tengamos un destino (Login o Dashboard), navegamos
         destination?.let { route ->
             navController.navigate(route) {
                 popUpTo(Routes.SPLASH) { inclusive = true }
