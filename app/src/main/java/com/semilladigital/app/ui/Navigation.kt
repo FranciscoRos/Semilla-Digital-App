@@ -110,9 +110,11 @@ fun AppNavigation() {
             )
         }
 
-        // --- CHATBOT --- (NUEVO BLOQUE)
+        // --- CHATBOT ---
         composable(Routes.CHATBOT) {
-            ChatScreen()
+            ChatScreen(
+                onBackClick = { navController.popBackStack() }
+            )
         }
     }
 }
