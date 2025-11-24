@@ -74,6 +74,8 @@ dependencies {
     implementation(project(":chatbot"))
     implementation(project(":courses"))
     implementation(project(":supports"))
+    implementation(project(":dashboard"))
+    implementation(project(":forum"))
 
 
     implementation(project(":core-data"))

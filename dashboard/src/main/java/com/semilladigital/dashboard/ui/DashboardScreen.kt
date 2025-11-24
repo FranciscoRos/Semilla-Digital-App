@@ -32,6 +32,7 @@ fun DashboardScreen(
     onNavigateToSupports: () -> Unit,
     onNavigateToChatbot: () -> Unit,
     onNavigateToGeomap: () -> Unit,
+    onNavigateToForum: () -> Unit,
     viewModel: DashboardViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -79,7 +80,6 @@ fun DashboardScreen(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    // Tarjeta 1: Verde Pastel
                     ServiceCard(
                         title = "Solicitar\nApoyos",
                         icon = Icons.Default.Assignment,
@@ -87,7 +87,6 @@ fun DashboardScreen(
                         onClick = onNavigateToSupports,
                         modifier = Modifier.weight(1f)
                     )
-                    // Tarjeta 2: Azul Pastel
                     ServiceCard(
                         title = "Asistente\nVirtual",
                         icon = Icons.Default.SmartToy,
@@ -101,7 +100,6 @@ fun DashboardScreen(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    // Tarjeta 3: Naranja Pastel
                     ServiceCard(
                         title = "Cursos y\nCapacitación",
                         icon = Icons.Default.School,
@@ -109,7 +107,6 @@ fun DashboardScreen(
                         onClick = onNavigateToCourses,
                         modifier = Modifier.weight(1f)
                     )
-                    // Tarjeta 4: Morado Pastel
                     ServiceCard(
                         title = "Geomapa de\nRecursos",
                         icon = Icons.Default.Map,
@@ -117,6 +114,21 @@ fun DashboardScreen(
                         onClick = onNavigateToGeomap,
                         modifier = Modifier.weight(1f)
                     )
+                }
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    ServiceCard(
+                        title = "Foro\nComunitario",
+                        icon = Icons.Default.Groups,
+                        color = Color(0xFFFFD54F),
+                        onClick = onNavigateToForum,
+                        modifier = Modifier.weight(1f)
+                    )
+                    // Spacer para mantener la alineación de cuadrícula (hueco vacío a la derecha)
+                    Spacer(modifier = Modifier.weight(1f))
                 }
 
                 Spacer(modifier = Modifier.height(8.dp))
@@ -253,7 +265,7 @@ fun DashboardHeader(
 fun ServiceCard(
     title: String,
     icon: ImageVector,
-    color: Color, // Nuevo parámetro de color
+    color: Color,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -273,7 +285,6 @@ fun ServiceCard(
         ) {
             Surface(
                 shape = CircleShape,
-                // Usamos el color pastel con transparencia para el fondo
                 color = color.copy(alpha = 0.1f),
                 modifier = Modifier.size(56.dp)
             ) {
@@ -281,7 +292,6 @@ fun ServiceCard(
                     imageVector = icon,
                     contentDescription = null,
                     modifier = Modifier.padding(14.dp),
-                    // Usamos el color pastel sólido para el ícono
                     tint = color
                 )
             }

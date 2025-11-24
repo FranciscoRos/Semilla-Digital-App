@@ -6,12 +6,8 @@ plugins {
 }
 
 android {
-    namespace = "com.semilladigital.courses"
+    namespace = "com.semilladigital.forum"
     compileSdk = 36
-
-    buildFeatures {
-        compose = true
-    }
 
     defaultConfig {
         minSdk = 23
@@ -32,7 +28,6 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
-        isCoreLibraryDesugaringEnabled = true
     }
     kotlinOptions {
         jvmTarget = "11"
@@ -41,16 +36,14 @@ android {
 
 dependencies {
 
-    //Para acceder a los objetos de ui
-    implementation(project(":core-ui"))
-    implementation(project(":core-data"))
-
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.test.ext.junit)
     androidTestImplementation(libs.androidx.espresso.core)
+
+
 
     // Hilt para inyección de dependencias
     implementation(libs.hilt.android)
