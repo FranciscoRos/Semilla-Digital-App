@@ -92,10 +92,14 @@ fun AppNavigation() {
             }
         }
     ) { paddingValues ->
+        // CORRECCIÓN: Eliminamos el padding del Scaffold global al NavHost.
+        // Esto evita que se "empuje" el contenido hacia abajo dos veces.
+        // El paddingValues del FAB lo ignoramos aquí porque el FAB flota por encima.
+
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues)
+            // .padding(paddingValues) <--- ESTA LÍNEA SE ELIMINÓ PARA ARREGLAR EL DOBLE PADDING
         ) {
             NavHost(
                 navController = navController,

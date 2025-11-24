@@ -27,16 +27,43 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.*
+import com.semilladigital.chatbot.presentation.ChatViewModel
 import com.semilladigital.geomap.utils.MapUtils
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun GeomapScreen(
     onBack: () -> Unit,
-    viewModel: GeomapViewModel = hiltViewModel()
+    viewModel: GeomapViewModel = hiltViewModel(),
+    chatViewModel: ChatViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val context = LocalContext.current
+
+    // --- LÓGICA DE CONTEXTO PARA EL CHATBOT ---
+    LaunchedEffect(state.selectedUbicacion, state.searchQuery) {
+        val ubi = state.selectedUbicacion
+        val query = state.searchQuery
+
+        if (ubi != null) {
+            // Caso 1: Viendo detalle de una ubicación
+            chatViewModel.setContext(
+                "El usuario ha seleccionado un marcador en el Geomapa: '${ubi.nombre}'. " +
+                        "Tipo: ${ubi.tipo}. Municipio: ${ubi.municipio}. " +
+                        "Descripción: ${ubi.descripcion}. " +
+                        "Teléfono: ${ubi.telefono ?: "No disponible"}. " +
+                        "El usuario tiene un botón para abrir esta ubicación en Google Maps."
+            )
+        } else {
+            // Caso 2: Explorando el mapa general o buscando
+            val searchContext = if (query.isNotBlank()) " Actualmente ha filtrado el mapa buscando: '$query'." else ""
+
+            chatViewModel.setContext(
+                "El usuario está explorando el Geomapa de Recursos. " +
+                        "Este mapa interactivo muestra parcelas productivas (polígonos verdes) y marcadores de interés (oficinas, proveedores, centros de acopio).$searchContext"
+            )
+        }
+    }
 
     // 1. Gestión de Permisos de Ubicación
     var hasLocationPermission by remember {
@@ -90,21 +117,18 @@ fun GeomapScreen(
             ) {
                 // --- DIBUJAR PARCELAS (Polígonos) ---
                 state.filteredParcelas.forEach { parcela ->
-                    // Transformamos las coordenadas del dominio a LatLng de Google Maps
                     val coords = parcela.coordenadas.map { LatLng(it.lat, it.lng) }
 
                     if (coords.isNotEmpty()) {
                         Polygon(
                             points = coords,
-                            fillColor = Color(0x554CAF50), // Verde semitransparente
+                            fillColor = Color(0x554CAF50),
                             strokeColor = Color(0xFF2E7D32),
                             strokeWidth = 3f,
                             tag = parcela.nombre
                         )
 
-                        // Emoji en el centro
                         val centro = MapUtils.calculateCentroid(coords)
-                        // Usamos la lista 'actividades' que ya viene limpia desde el dominio
                         val emoji = MapUtils.getEmojiForActivity(parcela.actividades)
 
                         Marker(
@@ -132,7 +156,6 @@ fun GeomapScreen(
                 }
             }
 
-            // Loading Indicator
             if(state.isLoading) {
                 CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
             }
@@ -169,7 +192,6 @@ fun GeomapScreen(
 
                 Spacer(Modifier.height(16.dp))
 
-                // Botón para abrir Google Maps externo
                 Button(
                     onClick = {
                         val gmmIntentUri = Uri.parse(

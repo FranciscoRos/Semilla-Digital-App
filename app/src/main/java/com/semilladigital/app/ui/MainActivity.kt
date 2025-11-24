@@ -16,7 +16,9 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        WindowCompat.setDecorFitsSystemWindows(window, true)
+        // CORRECCIÓN: Cambiamos a 'false' para permitir diseño Edge-to-Edge
+        // Esto permite que tu TopBar verde se dibuje detrás de la barra de estado (hora/batería)
+        WindowCompat.setDecorFitsSystemWindows(window, false)
 
         setContent {
             SemillaDigitalTheme {
@@ -24,9 +26,6 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    // --- CAMBIO AQUÍ ---
-                    // Ya no inyectamos el ViewModel aquí.
-                    // El composable 'SplashScreen' lo obtendrá él mismo.
                     AppNavigation()
                 }
             }

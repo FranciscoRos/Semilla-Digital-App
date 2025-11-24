@@ -42,8 +42,8 @@ dependencies {
     // Proyectos Core
     implementation(project(":core-ui"))
     implementation(project(":core-data"))
-    // Si usas clases de auth (como el usuario) podrías necesitarlo, si no, omítelo
-    // implementation(project(":auth"))
+    implementation(project(":chatbot"))
+
 
     // Android Core & Compose
     implementation(libs.androidx.core.ktx)
