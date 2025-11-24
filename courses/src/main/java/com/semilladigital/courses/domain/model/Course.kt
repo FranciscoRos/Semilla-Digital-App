@@ -4,12 +4,12 @@ data class Course(
     val id: String,
     val titulo: String,
     val descripcion: String,
-    val detalles: String?, // <-- AÑADIDO
-    val tema: String?, // <-- AÑADIDO
+    val detalles: String?,
+    val tema: String?,
     val modalidad: String,
-    val fechaCurso: String,
+    val fechaCurso: List<String>,
     val direccion: String?,
-    val url: String?,
     val lat: Double?,
-    val longitud: Double?
+    val longitud: Double?,
+    val url: String?
 )

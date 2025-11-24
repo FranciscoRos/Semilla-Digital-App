@@ -16,13 +16,13 @@ data class CourseDto(
     val detalles: String?,
 
     @SerializedName("Tema")
-    val tema: String?, // General, Agricultura, etc.
+    val tema: String?,
 
     @SerializedName("Modalidad")
     val modalidad: String,
 
     @SerializedName("FechaCurso")
-    val fechaCurso: String,
+    val fechaCurso: List<String>,
 
     @SerializedName("DireccionUbicacion")
     val direccion: String?,

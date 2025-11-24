@@ -27,7 +27,8 @@ class CourseViewModel @Inject constructor(
     val state: StateFlow<CourseState> = _state.asStateFlow()
 
     private var masterCourseList: List<Course> = emptyList()
-    private val apiDateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+
+    private val apiDateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
 
     init {
         loadCourses()
@@ -80,10 +81,18 @@ class CourseViewModel @Inject constructor(
             val modalidadMatch = (currentState.selectedModalidad == "Todas" ||
                     course.modalidad.equals(currentState.selectedModalidad, ignoreCase = true))
 
-            val courseDate = parseCourseDate(course.fechaCurso)
+
+            val courseDates = course.fechaCurso.mapNotNull { parseCourseDate(it) }
+
             val dateMatch = when (currentState.selectedDateFilter) {
-                "Próximos" -> courseDate == null || courseDate.isAfter(today) || courseDate.isEqual(today)
-                "Pasados" -> courseDate != null && courseDate.isBefore(today)
+                "Próximos" -> {
+
+                    courseDates.isEmpty() || courseDates.any { it.isAfter(today) || it.isEqual(today) }
+                }
+                "Pasados" -> {
+
+                    courseDates.isNotEmpty() && courseDates.all { it.isBefore(today) }
+                }
                 else -> true
             }
 
@@ -95,10 +104,16 @@ class CourseViewModel @Inject constructor(
 
     private fun parseCourseDate(dateString: String): LocalDate? {
         return try {
-            LocalDate.parse(dateString, apiDateFormatter)
+            val cleanDate = if (dateString.contains(" ")) dateString.split(" ")[0] else dateString
+            LocalDate.parse(cleanDate, apiDateFormatter)
         } catch (e: DateTimeParseException) {
-            Log.e("CourseViewModel", "Error al parsear fecha: $dateString", e)
-            null
+
+            try {
+                LocalDate.parse(dateString, DateTimeFormatter.ISO_DATE)
+            } catch (e2: Exception) {
+                Log.e("CourseViewModel", "Error al parsear fecha: $dateString", e)
+                null
+            }
         }
     }
 
@@ -112,7 +127,6 @@ class CourseViewModel @Inject constructor(
                     val temas = courses.mapNotNull { it.tema }.distinct().toMutableList()
                     temas.add(0, "Todos")
 
-                    // Lógica de Recomendación basada en actividades guardadas
                     val userActivities = sessionStorage.getActividades()
 
                     val recommended = courses.filter { course ->
