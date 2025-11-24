@@ -2,7 +2,10 @@ package com.semilladigital.app.ui
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.SmartToy
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -14,6 +17,7 @@ import androidx.lifecycle.ViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.semilladigital.auth.ui.login.LoginScreen
 import com.semilladigital.app.core.data.storage.SessionStorage
@@ -64,65 +68,93 @@ class MainViewModel @Inject constructor(
 fun AppNavigation() {
     val navController = rememberNavController()
 
-    NavHost(
-        navController = navController,
-        startDestination = Routes.SPLASH
-    ) {
-        composable(Routes.SPLASH) {
-            SplashScreen(navController = navController)
-        }
+    // --- LÓGICA DEL BOTÓN FLOTANTE ---
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentRoute = navBackStackEntry?.destination?.route
 
-        composable(Routes.LOGIN) {
-            LoginScreen(
-                onLoginSuccess = {
-                    navController.navigate(Routes.DASHBOARD) {
-                        popUpTo(Routes.LOGIN) { inclusive = true }
-                    }
-                },
-                onNavigateToRegister = {
-                    navController.navigate(Routes.REGISTER)
+    // Definimos en qué pantallas queremos que aparezca el bot
+    val showBotButtonIn = listOf(
+        Routes.DASHBOARD,
+        Routes.COURSES,
+        Routes.FORUM
+    )
+
+    Scaffold(
+        floatingActionButton = {
+            if (currentRoute in showBotButtonIn) {
+                FloatingActionButton(
+                    onClick = { navController.navigate(Routes.CHATBOT) },
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary
+                ) {
+                    Icon(Icons.Default.SmartToy, contentDescription = "Chatbot")
                 }
-            )
+            }
         }
-
-        composable(Routes.REGISTER) {
-            RegisterScreen(
-                onBack = { navController.popBackStack() }
-            )
-        }
-
-        composable(Routes.DASHBOARD) {
-            DashboardScreen(
-                onNavigateToCourses = { navController.navigate(Routes.COURSES) },
-                onNavigateToSupports = { },
-                onNavigateToChatbot = { navController.navigate(Routes.CHATBOT) },
-                onNavigateToGeomap = { },
-                onNavigateToForum = { navController.navigate(Routes.FORUM) },
-                onNavigateToLogin = {
-                    // Navegar al Login y limpiar toda la pila anterior para que no pueda volver atrás
-                    navController.navigate(Routes.LOGIN) {
-                        popUpTo(0) // 0 significa el inicio del gráfico de navegación
-                    }
+    ) { _ ->
+        // Usamos Box y fillMaxSize para que el NavHost ocupe todo,
+        // ignorando el padding del Scaffold global ya que cada pantalla gestiona su propio diseño.
+        Box(modifier = Modifier.fillMaxSize()) {
+            NavHost(
+                navController = navController,
+                startDestination = Routes.SPLASH
+            ) {
+                composable(Routes.SPLASH) {
+                    SplashScreen(navController = navController)
                 }
-            )
-        }
 
-        composable(Routes.COURSES) {
-            CourseScreen(
-                onNavigateBack = { navController.popBackStack() }
-            )
-        }
+                composable(Routes.LOGIN) {
+                    LoginScreen(
+                        onLoginSuccess = {
+                            navController.navigate(Routes.DASHBOARD) {
+                                popUpTo(Routes.LOGIN) { inclusive = true }
+                            }
+                        },
+                        onNavigateToRegister = {
+                            navController.navigate(Routes.REGISTER)
+                        }
+                    )
+                }
 
-        composable(Routes.CHATBOT) {
-            ChatScreen(
-                onBackClick = { navController.popBackStack() }
-            )
-        }
+                composable(Routes.REGISTER) {
+                    RegisterScreen(
+                        onBack = { navController.popBackStack() }
+                    )
+                }
 
-        composable(Routes.FORUM) {
-            ForumScreen(
-                onBack = { navController.popBackStack() }
-            )
+                composable(Routes.DASHBOARD) {
+                    DashboardScreen(
+                        onNavigateToCourses = { navController.navigate(Routes.COURSES) },
+                        onNavigateToSupports = { },
+                        onNavigateToChatbot = { navController.navigate(Routes.CHATBOT) },
+                        onNavigateToGeomap = { },
+                        onNavigateToForum = { navController.navigate(Routes.FORUM) },
+                        onNavigateToLogin = {
+                            navController.navigate(Routes.LOGIN) {
+                                popUpTo(0)
+                            }
+                        }
+                    )
+                }
+
+                composable(Routes.COURSES) {
+                    CourseScreen(
+                        onNavigateBack = { navController.popBackStack() }
+                    )
+                }
+
+                composable(Routes.CHATBOT) {
+                    ChatScreen(
+                        onBackClick = { navController.popBackStack() }
+                    )
+                }
+
+                composable(Routes.FORUM) {
+                    ForumScreen(
+                        onBack = { navController.popBackStack() }
+                    )
+                }
+            }
         }
     }
 }
