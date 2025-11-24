@@ -26,6 +26,7 @@ import com.semilladigital.courses.ui.CourseScreen
 import com.semilladigital.auth.ui.register.RegisterScreen
 import com.semilladigital.chatbot.presentation.ChatScreen
 import com.semilladigital.forum.ui.ForumScreen
+import com.semilladigital.geomap.ui.GeomapScreen
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -39,6 +40,7 @@ object Routes {
     const val COURSES = "courses"
     const val CHATBOT = "chatbot"
     const val FORUM = "forum"
+    const val GEOMAP = "geomap"
 }
 
 @HiltViewModel
@@ -67,16 +69,14 @@ class MainViewModel @Inject constructor(
 @Composable
 fun AppNavigation() {
     val navController = rememberNavController()
-
-    // --- LÓGICA DEL BOTÓN FLOTANTE ---
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
-    // Definimos en qué pantallas queremos que aparezca el bot
     val showBotButtonIn = listOf(
         Routes.DASHBOARD,
         Routes.COURSES,
-        Routes.FORUM
+        Routes.FORUM,
+        Routes.GEOMAP
     )
 
     Scaffold(
@@ -91,10 +91,12 @@ fun AppNavigation() {
                 }
             }
         }
-    ) { _ ->
-        // Usamos Box y fillMaxSize para que el NavHost ocupe todo,
-        // ignorando el padding del Scaffold global ya que cada pantalla gestiona su propio diseño.
-        Box(modifier = Modifier.fillMaxSize()) {
+    ) { paddingValues ->
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+        ) {
             NavHost(
                 navController = navController,
                 startDestination = Routes.SPLASH
@@ -127,7 +129,7 @@ fun AppNavigation() {
                         onNavigateToCourses = { navController.navigate(Routes.COURSES) },
                         onNavigateToSupports = { },
                         onNavigateToChatbot = { navController.navigate(Routes.CHATBOT) },
-                        onNavigateToGeomap = { },
+                        onNavigateToGeomap = { navController.navigate(Routes.GEOMAP) },
                         onNavigateToForum = { navController.navigate(Routes.FORUM) },
                         onNavigateToLogin = {
                             navController.navigate(Routes.LOGIN) {
@@ -151,6 +153,12 @@ fun AppNavigation() {
 
                 composable(Routes.FORUM) {
                     ForumScreen(
+                        onBack = { navController.popBackStack() }
+                    )
+                }
+
+                composable(Routes.GEOMAP) {
+                    GeomapScreen(
                         onBack = { navController.popBackStack() }
                     )
                 }

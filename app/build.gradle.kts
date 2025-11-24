@@ -76,6 +76,7 @@ dependencies {
     implementation(project(":supports"))
     implementation(project(":dashboard"))
     implementation(project(":forum"))
+    implementation(project(":geomap"))
 
 
     implementation(project(":core-data"))
