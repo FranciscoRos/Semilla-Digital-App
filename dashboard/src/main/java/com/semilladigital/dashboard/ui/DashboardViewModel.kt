@@ -15,7 +15,8 @@ data class DashboardState(
     val userName: String = "Cargando...",
     val userStatus: String = "",
     val isLoading: Boolean = false,
-    val error: String? = null
+    val error: String? = null,
+    val isLoggedOut: Boolean = false // <--- Nueva bandera
 )
 
 @HiltViewModel
@@ -29,7 +30,6 @@ class DashboardViewModel @Inject constructor(
 
     init {
         loadUserProfile()
-
     }
 
     private fun loadUserProfile() {
@@ -59,11 +59,23 @@ class DashboardViewModel @Inject constructor(
                 _state.update { it.copy(isLoading = false, error = "No hay sesión") }
             }
         }
-}
-
-    fun onLogout() {
-        sessionStorage.clearSession()
-        // La navegación global reaccionará al cambio en SessionStorage
     }
 
+    fun onLogout() {
+        viewModelScope.launch {
+            _state.update { it.copy(isLoading = true) }
+
+            // 1. Intentar avisar al backend (Best Effort)
+            val token = sessionStorage.getToken()
+            if (!token.isNullOrEmpty()) {
+                authRepository.logout(token)
+            }
+
+            // 2. Borrar sesión local
+            sessionStorage.clearSession()
+
+            // 3. Avisar a la UI que ya terminamos para que navegue
+            _state.update { it.copy(isLoading = false, isLoggedOut = true) }
+        }
+    }
 }

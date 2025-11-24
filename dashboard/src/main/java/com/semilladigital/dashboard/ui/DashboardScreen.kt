@@ -12,6 +12,7 @@ import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -33,10 +34,18 @@ fun DashboardScreen(
     onNavigateToChatbot: () -> Unit,
     onNavigateToGeomap: () -> Unit,
     onNavigateToForum: () -> Unit,
+    onNavigateToLogin: () -> Unit, // <--- Nuevo parámetro
     viewModel: DashboardViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val scrollState = rememberScrollState()
+
+    // --- LÓGICA DE NAVEGACIÓN AUTOMÁTICA ---
+    LaunchedEffect(state.isLoggedOut) {
+        if (state.isLoggedOut) {
+            onNavigateToLogin()
+        }
+    }
 
     val view = LocalView.current
     if (!view.isInEditMode) {
@@ -47,6 +56,8 @@ fun DashboardScreen(
         }
     }
 
+    // Si se está cerrando sesión, podríamos mostrar un loader bloqueante,
+    // pero por ahora dejaremos que la UI se vea mientras sale.
     Scaffold(
         containerColor = Color(0xFFF5F6F8),
         contentWindowInsets = WindowInsets(0.dp)
@@ -127,7 +138,6 @@ fun DashboardScreen(
                         onClick = onNavigateToForum,
                         modifier = Modifier.weight(1f)
                     )
-                    // Spacer para mantener la alineación de cuadrícula (hueco vacío a la derecha)
                     Spacer(modifier = Modifier.weight(1f))
                 }
 

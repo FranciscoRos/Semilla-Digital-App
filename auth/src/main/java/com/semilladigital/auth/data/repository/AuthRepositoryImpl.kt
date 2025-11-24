@@ -26,7 +26,7 @@ class AuthRepositoryImpl @Inject constructor(
             val safeRole = userDto.rol?.firstOrNull()?.nombreRol ?: "Productor"
             val apellidos = "${userDto.apellido1 ?: ""} ${userDto.apellido2 ?: ""}".trim()
 
-            // --- DUMMY DATA: Usamos datos falsos por el momento ---
+            // --- DUMMY DATA ---
             val actividadesDummy = getDummyActividades()
 
             sessionStorage.saveSession(
@@ -37,7 +37,7 @@ class AuthRepositoryImpl @Inject constructor(
                 email = userDto.correo ?: "",
                 rol = safeRole,
                 estatus = userDto.estatus ?: "Activo",
-                actividades = actividadesDummy // <--- Inyectamos la lista falsa
+                actividades = actividadesDummy
             )
 
             val authResult = AuthResult(
@@ -67,7 +67,7 @@ class AuthRepositoryImpl @Inject constructor(
             val apellidos = "${userDto.apellido1 ?: ""} ${userDto.apellido2 ?: ""}".trim()
             val safeRole = userDto.rol?.firstOrNull()?.nombreRol ?: "Usuario"
 
-            // --- DUMMY DATA: También aquí para mantener la consistencia ---
+            // --- DUMMY DATA ---
             val actividadesDummy = getDummyActividades()
 
             sessionStorage.saveSession(
@@ -78,7 +78,7 @@ class AuthRepositoryImpl @Inject constructor(
                 email = userDto.correo ?: "",
                 rol = safeRole,
                 estatus = userDto.estatus ?: "Activo",
-                actividades = actividadesDummy // <--- Inyectamos la lista falsa
+                actividades = actividadesDummy
             )
 
             Result.success(userDto.toUser())
@@ -87,7 +87,18 @@ class AuthRepositoryImpl @Inject constructor(
         }
     }
 
-    // --- FUNCIÓN DUMMY (Bórrala cuando el backend esté listo) ---
+    override suspend fun logout(token: String): Result<Unit> {
+        return try {
+            // El backend espera: Authorization: Bearer <token>
+            apiService.logout("Bearer $token")
+            Result.success(Unit)
+        } catch (e: Exception) {
+            // Incluso si falla la red, devolveremos error,
+            // pero el ViewModel se encargará de borrar la sesión local de todos modos.
+            Result.failure(e)
+        }
+    }
+
     private fun getDummyActividades(): List<String> {
         return listOf(
             "Maíz",

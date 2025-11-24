@@ -97,7 +97,13 @@ fun AppNavigation() {
                 onNavigateToSupports = { },
                 onNavigateToChatbot = { navController.navigate(Routes.CHATBOT) },
                 onNavigateToGeomap = { },
-                onNavigateToForum = { navController.navigate(Routes.FORUM) }
+                onNavigateToForum = { navController.navigate(Routes.FORUM) },
+                onNavigateToLogin = {
+                    // Navegar al Login y limpiar toda la pila anterior para que no pueda volver atrás
+                    navController.navigate(Routes.LOGIN) {
+                        popUpTo(0) // 0 significa el inicio del gráfico de navegación
+                    }
+                }
             )
         }
 

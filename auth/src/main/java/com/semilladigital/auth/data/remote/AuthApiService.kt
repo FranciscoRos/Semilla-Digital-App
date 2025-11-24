@@ -2,7 +2,6 @@ package com.semilladigital.auth.data.remote
 
 import com.semilladigital.auth.data.remote.dto.LoginRequestDto
 import com.semilladigital.auth.data.remote.dto.LoginResponseDto
-import com.semilladigital.auth.data.remote.dto.RegisterRequestDto
 import com.semilladigital.auth.data.remote.dto.UserDto
 import retrofit2.http.Body
 import retrofit2.http.GET
@@ -20,4 +19,7 @@ interface AuthApiService {
 
     @GET("me")
     suspend fun getMe(@Header("Authorization") token: String): UserDto
+
+    @POST("logout")
+    suspend fun logout(@Header("Authorization") token: String): Any
 }
