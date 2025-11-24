@@ -25,16 +25,23 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.semilladigital.app.core.ui.SemillaDigitalTheme
 import com.semilladigital.app.core.ui.SemillaScreen
+import com.semilladigital.chatbot.presentation.ChatViewModel 
 import com.semilladigital.courses.domain.model.Course
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CourseScreen(
     viewModel: CourseViewModel = hiltViewModel(),
+    chatViewModel: ChatViewModel = hiltViewModel(), // Inyectamos el Chat para pasarle contexto
     onNavigateBack: () -> Unit
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val context = LocalContext.current
+
+    // 1. Contexto general al entrar a la pantalla
+    LaunchedEffect(Unit) {
+        chatViewModel.setContext("El usuario está navegando en la lista general de Cursos y Capacitación. Puede ver cursos recomendados y filtrar por temas.")
+    }
 
     SemillaDigitalTheme {
         SemillaScreen(
@@ -51,9 +58,24 @@ fun CourseScreen(
 
             val selectedCourse = state.selectedCourse
             if (selectedCourse != null) {
+
+                // 2. Contexto específico al abrir un curso
+                LaunchedEffect(selectedCourse) {
+                    chatViewModel.setContext(
+                        "El usuario está viendo los detalles del curso: '${selectedCourse.titulo}'. " +
+                                "Descripción: ${selectedCourse.detalles ?: selectedCourse.descripcion}. " +
+                                "Modalidad: ${selectedCourse.modalidad}. " +
+                                "Dirección: ${selectedCourse.direccion ?: "No especificada"}."
+                    )
+                }
+
                 CourseDetailsSheet(
                     course = selectedCourse,
-                    onDismiss = { viewModel.onEvent(CourseEvent.OnHideDetails) },
+                    onDismiss = {
+                        viewModel.onEvent(CourseEvent.OnHideDetails)
+                        // 3. Regresar al contexto general al cerrar
+                        chatViewModel.setContext("El usuario regresó a la lista de Cursos.")
+                    },
                     onGoToMap = { lat, lon ->
                         val gmmIntentUri = Uri.parse("geo:$lat,$lon?q=$lat,$lon")
                         val mapIntent = Intent(Intent.ACTION_VIEW, gmmIntentUri)
@@ -122,13 +144,12 @@ private fun CourseContent(
                     }
                 }
 
-                // Detectar si hay filtros activos o búsqueda
                 val isFiltering = state.searchQuery.isNotEmpty() ||
                         state.selectedTema != "Todos" ||
                         state.selectedModalidad != "Todas" ||
                         state.selectedDateFilter != "Todos"
 
-                // --- SECCIÓN: CURSOS PARA TI (Solo visible si NO se está filtrando) ---
+                // --- SECCIÓN: CURSOS PARA TI ---
                 if (state.recommendedCourses.isNotEmpty() && !isFiltering) {
                     item {
                         Column(

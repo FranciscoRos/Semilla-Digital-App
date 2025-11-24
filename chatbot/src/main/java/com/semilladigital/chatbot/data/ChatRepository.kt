@@ -17,15 +17,31 @@ class ChatRepository @Inject constructor(
     private val _isLoading = MutableStateFlow(false)
     val isLoading = _isLoading.asStateFlow()
 
+    // Variable para guardar el contexto actual (invisible para el usuario)
+    private var currentContext: String = ""
+
+    fun setContext(context: String) {
+        currentContext = context
+    }
+
     suspend fun sendMessage(prompt: String) {
         if (prompt.isBlank()) return
 
+        // 1. En la UI mostramos solo lo que el usuario escribió
         val userMsg = ChatMessage(text = prompt, isUser = true)
         _messages.value = _messages.value + userMsg
         _isLoading.value = true
 
         try {
-            val response = api.sendMessage(GeminiRequest(prompt))
+            // 2. Preparamos el prompt REAL con el contexto inyectado
+            val promptToSend = if (currentContext.isNotBlank()) {
+                "[CONTEXTO DEL SISTEMA: $currentContext]\n\nPREGUNTA DEL USUARIO: $prompt"
+            } else {
+                prompt
+            }
+
+            // 3. Enviamos el prompt enriquecido a la API
+            val response = api.sendMessage(GeminiRequest(promptToSend))
 
             if (response.isSuccessful && response.body() != null) {
                 val botMsg = ChatMessage(text = response.body()!!.respuesta, isUser = false)

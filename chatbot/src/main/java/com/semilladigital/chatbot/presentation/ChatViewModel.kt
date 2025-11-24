@@ -12,7 +12,6 @@ class ChatViewModel @Inject constructor(
     private val repository: ChatRepository
 ) : ViewModel() {
 
-
     val messages = repository.messages
     val isLoading = repository.isLoading
 
@@ -20,5 +19,9 @@ class ChatViewModel @Inject constructor(
         viewModelScope.launch {
             repository.sendMessage(prompt)
         }
+    }
+
+    fun setContext(context: String) {
+        repository.setContext(context)
     }
 }

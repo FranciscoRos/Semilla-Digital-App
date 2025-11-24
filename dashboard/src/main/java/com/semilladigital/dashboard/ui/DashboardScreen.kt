@@ -26,6 +26,7 @@ import androidx.compose.ui.unit.sp
 import androidx.core.view.WindowCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.semilladigital.chatbot.presentation.ChatViewModel
 
 @Composable
 fun DashboardScreen(
@@ -34,16 +35,26 @@ fun DashboardScreen(
     onNavigateToChatbot: () -> Unit,
     onNavigateToGeomap: () -> Unit,
     onNavigateToForum: () -> Unit,
-    onNavigateToLogin: () -> Unit, // <--- Nuevo parámetro
-    viewModel: DashboardViewModel = hiltViewModel()
+    onNavigateToLogin: () -> Unit,
+    viewModel: DashboardViewModel = hiltViewModel(),
+    chatViewModel: ChatViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val scrollState = rememberScrollState()
 
-    // --- LÓGICA DE NAVEGACIÓN AUTOMÁTICA ---
     LaunchedEffect(state.isLoggedOut) {
         if (state.isLoggedOut) {
             onNavigateToLogin()
+        }
+    }
+
+    LaunchedEffect(state.userName, state.userStatus) {
+        if (state.userName != "Cargando...") {
+            chatViewModel.setContext(
+                "El usuario está en el Dashboard (Pantalla Principal). " +
+                        "Datos del usuario -> Nombre: ${state.userName}, Estatus: ${state.userStatus}. " +
+                        "Opciones disponibles en pantalla: Solicitar Apoyos, Asistente Virtual, Cursos y Capacitación, Geomapa de Recursos, Foro Comunitario."
+            )
         }
     }
 
@@ -56,8 +67,6 @@ fun DashboardScreen(
         }
     }
 
-    // Si se está cerrando sesión, podríamos mostrar un loader bloqueante,
-    // pero por ahora dejaremos que la UI se vea mientras sale.
     Scaffold(
         containerColor = Color(0xFFF5F6F8),
         contentWindowInsets = WindowInsets(0.dp)

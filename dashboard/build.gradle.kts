@@ -52,10 +52,11 @@ dependencies {
     implementation(libs.hilt.android)
     kapt(libs.hilt.compiler)
 
-    // Módulo de UI (para los colores)
+
     implementation(project(":core-ui"))
     implementation(project(":core-data"))
     implementation(project(":auth"))
+    implementation(project(":chatbot"))
     // Librerías de Hilt y Lifecycle
     implementation(libs.androidx.hilt.navigation.compose)
     implementation(libs.androidx.lifecycle.viewmodel.compose)

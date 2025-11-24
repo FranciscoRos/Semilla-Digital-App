@@ -44,6 +44,7 @@ dependencies {
     //Para acceder a los objetos de ui
     implementation(project(":core-ui"))
     implementation(project(":core-data"))
+    implementation(project(":chatbot"))
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
