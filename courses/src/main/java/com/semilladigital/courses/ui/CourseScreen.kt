@@ -122,13 +122,19 @@ private fun CourseContent(
                     }
                 }
 
-                // --- SECCIÓN: CURSOS PARA TI ---
-                if (state.recommendedCourses.isNotEmpty()) {
+                // Detectar si hay filtros activos o búsqueda
+                val isFiltering = state.searchQuery.isNotEmpty() ||
+                        state.selectedTema != "Todos" ||
+                        state.selectedModalidad != "Todas" ||
+                        state.selectedDateFilter != "Todos"
+
+                // --- SECCIÓN: CURSOS PARA TI (Solo visible si NO se está filtrando) ---
+                if (state.recommendedCourses.isNotEmpty() && !isFiltering) {
                     item {
                         Column(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)) // Fondo sutil
+                                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f))
                                 .padding(vertical = 16.dp)
                         ) {
                             Text(
@@ -151,11 +157,10 @@ private fun CourseContent(
                                 horizontalArrangement = Arrangement.spacedBy(12.dp)
                             ) {
                                 items(state.recommendedCourses) { course ->
-                                    // USAMOS LA TARJETA GRANDE, PERO CON ANCHO FIJO
                                     CourseCard(
                                         course = course,
                                         onDetailsClick = { onEvent(CourseEvent.OnShowDetails(course)) },
-                                        modifier = Modifier.width(300.dp) // <--- Ancho para carrusel
+                                        modifier = Modifier.width(300.dp)
                                     )
                                 }
                             }
@@ -167,7 +172,7 @@ private fun CourseContent(
                 item {
                     Spacer(Modifier.height(8.dp))
                     Text(
-                        text = "Todos los Cursos",
+                        text = if (isFiltering) "Resultados de búsqueda" else "Todos los Cursos",
                         style = MaterialTheme.typography.titleMedium,
                         color = MaterialTheme.colorScheme.primary,
                         fontWeight = FontWeight.Bold,
@@ -186,7 +191,6 @@ private fun CourseContent(
                 }
 
                 items(state.courses) { course ->
-                    // USAMOS LA TARJETA GRANDE, LLENANDO EL ANCHO
                     CourseCard(
                         course = course,
                         onDetailsClick = { onEvent(CourseEvent.OnShowDetails(course)) },
@@ -200,7 +204,6 @@ private fun CourseContent(
     }
 }
 
-// --- TARJETA ÚNICA Y ESTANDARIZADA ---
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun CourseCard(
@@ -212,26 +215,23 @@ private fun CourseCard(
         modifier = modifier,
         elevation = CardDefaults.cardElevation(defaultElevation = 3.dp),
         onClick = onDetailsClick,
-        shape = RoundedCornerShape(12.dp), // Bordes redondeados elegantes
+        shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(
-            containerColor = Color.White, // Fondo BLANCO limpio
+            containerColor = Color.White,
             contentColor = Color.Black
         ),
-        // BORDE GRIS OSCURO (Casi negro) como pediste
         border = BorderStroke(1.dp, Color(0xFF424242))
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            // Título
             Text(
                 text = course.titulo,
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
-                maxLines = 2 // Evita que títulos largos rompan todo
+                maxLines = 2
             )
 
             Spacer(Modifier.height(6.dp))
 
-            // Descripción
             Text(
                 text = course.descripcion,
                 style = MaterialTheme.typography.bodyMedium,
@@ -241,28 +241,24 @@ private fun CourseCard(
 
             Spacer(Modifier.height(12.dp))
 
-            // Chips de Información (Tema y Modalidad)
             Row(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Chip Modalidad
                 CourseInfoChip(text = course.modalidad, color = Color(0xFFEEEEEE))
 
-                // Chip Tema (si existe)
                 if (course.tema != null) {
-                    CourseInfoChip(text = course.tema, color = Color(0xFFE3F2FD)) // Azulito muy suave
+                    CourseInfoChip(text = course.tema, color = Color(0xFFE3F2FD))
                 }
             }
 
             Spacer(Modifier.height(16.dp))
 
-            // Botón de Acción
             Button(
                 onClick = onDetailsClick,
                 modifier = Modifier.align(Alignment.End),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.primary // Verde de tu tema
+                    containerColor = MaterialTheme.colorScheme.primary
                 ),
                 shape = RoundedCornerShape(8.dp)
             ) {
@@ -272,7 +268,6 @@ private fun CourseCard(
     }
 }
 
-// Pequeño componente auxiliar para los Chips (Etiquetas)
 @Composable
 private fun CourseInfoChip(text: String, color: Color) {
     Text(
@@ -287,7 +282,6 @@ private fun CourseInfoChip(text: String, color: Color) {
     )
 }
 
-// --- (Resto de componentes SearchBar, FilterChips, Dialogs... Igual) ---
 @Composable
 private fun SearchBar(
     query: String,
