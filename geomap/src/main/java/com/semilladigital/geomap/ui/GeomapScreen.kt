@@ -38,6 +38,7 @@ fun GeomapScreen(
     val state by viewModel.state.collectAsStateWithLifecycle()
     val context = LocalContext.current
 
+    // 1. Gestión de Permisos de Ubicación
     var hasLocationPermission by remember {
         mutableStateOf(
             ContextCompat.checkSelfPermission(
@@ -58,7 +59,9 @@ fun GeomapScreen(
         }
     }
 
+    // 2. Configuración del Mapa
     val cameraPositionState = rememberCameraPositionState {
+        // Centrado en Chetumal/Bacalar como punto de partida
         position = CameraPosition.fromLatLngZoom(LatLng(18.500, -88.300), 10f)
     }
 
@@ -76,39 +79,49 @@ fun GeomapScreen(
             GoogleMap(
                 modifier = Modifier.fillMaxSize(),
                 cameraPositionState = cameraPositionState,
-                uiSettings = MapUiSettings(zoomControlsEnabled = false, myLocationButtonEnabled = hasLocationPermission),
+                uiSettings = MapUiSettings(
+                    zoomControlsEnabled = false,
+                    myLocationButtonEnabled = hasLocationPermission
+                ),
                 properties = MapProperties(
                     mapType = MapType.NORMAL,
                     isMyLocationEnabled = hasLocationPermission
                 )
             ) {
+                // --- DIBUJAR PARCELAS (Polígonos) ---
                 state.filteredParcelas.forEach { parcela ->
-                    val coords = MapUtils.parseCoordinates(parcela.coordenadas)
+                    // Transformamos las coordenadas del dominio a LatLng de Google Maps
+                    val coords = parcela.coordenadas.map { LatLng(it.lat, it.lng) }
+
                     if (coords.isNotEmpty()) {
                         Polygon(
                             points = coords,
-                            fillColor = Color(0x554CAF50),
+                            fillColor = Color(0x554CAF50), // Verde semitransparente
                             strokeColor = Color(0xFF2E7D32),
                             strokeWidth = 3f,
                             tag = parcela.nombre
                         )
 
+                        // Emoji en el centro
                         val centro = MapUtils.calculateCentroid(coords)
-                        val actividades = parcela.usos.flatMap { it.actividadesEspecificas }
-                        val emoji = MapUtils.getEmojiForActivity(actividades)
+                        // Usamos la lista 'actividades' que ya viene limpia desde el dominio
+                        val emoji = MapUtils.getEmojiForActivity(parcela.actividades)
 
                         Marker(
                             state = MarkerState(position = centro),
                             icon = MapUtils.textToBitmapDescriptor(emoji, context),
                             title = parcela.nombre,
-                            snippet = actividades.joinToString(", ")
+                            snippet = parcela.actividades.joinToString(", ")
                         )
                     }
                 }
 
+                // --- DIBUJAR UBICACIONES ESPECIALES (Marcadores) ---
                 state.filteredUbicaciones.forEach { ubicacion ->
                     Marker(
-                        state = MarkerState(position = LatLng(ubicacion.coordenadas.lat, ubicacion.coordenadas.lng)),
+                        state = MarkerState(
+                            position = LatLng(ubicacion.coordenada.lat, ubicacion.coordenada.lng)
+                        ),
                         title = ubicacion.nombre,
                         onInfoWindowClick = { viewModel.selectUbicacion(ubicacion) },
                         onClick = {
@@ -119,31 +132,49 @@ fun GeomapScreen(
                 }
             }
 
+            // Loading Indicator
             if(state.isLoading) {
                 CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
             }
         }
     }
 
+    // 3. Bottom Sheet de Detalles
     if (state.selectedUbicacion != null) {
         val ubi = state.selectedUbicacion!!
         ModalBottomSheet(onDismissRequest = { viewModel.selectUbicacion(null) }) {
             Column(modifier = Modifier.padding(24.dp)) {
-                Text(ubi.nombre, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
-                Text(ubi.tipo.replace("_", " ").uppercase(), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.primary)
+                Text(
+                    text = ubi.nombre,
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    text = ubi.tipo.replace("_", " ").uppercase(),
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.primary
+                )
                 Spacer(Modifier.height(8.dp))
 
-                Text(ubi.descripcion, style = MaterialTheme.typography.bodyMedium)
+                Text(text = ubi.descripcion, style = MaterialTheme.typography.bodyMedium)
                 Spacer(Modifier.height(8.dp))
 
                 if (!ubi.telefono.isNullOrBlank()) {
-                    Text("📞 ${ubi.telefono}", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold)
+                    Text(
+                        text = "📞 ${ubi.telefono}",
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.Bold
+                    )
                 }
 
                 Spacer(Modifier.height(16.dp))
+
+                // Botón para abrir Google Maps externo
                 Button(
                     onClick = {
-                        val gmmIntentUri = Uri.parse("geo:0,0?q=${ubi.coordenadas.lat},${ubi.coordenadas.lng}(${Uri.encode(ubi.nombre)})")
+                        val gmmIntentUri = Uri.parse(
+                            "geo:0,0?q=${ubi.coordenada.lat},${ubi.coordenada.lng}(${Uri.encode(ubi.nombre)})"
+                        )
                         val mapIntent = Intent(Intent.ACTION_VIEW, gmmIntentUri)
                         mapIntent.setPackage("com.google.android.apps.maps")
                         context.startActivity(mapIntent)
@@ -173,7 +204,7 @@ fun SearchBar(query: String, onQueryChange: (String) -> Unit, onBack: () -> Unit
             verticalAlignment = Alignment.CenterVertically
         ) {
             IconButton(onClick = onBack) {
-                Icon(Icons.Default.ArrowBack, contentDescription = null, tint = Color.White)
+                Icon(Icons.Default.ArrowBack, contentDescription = "Atrás", tint = Color.White)
             }
             TextField(
                 value = query,

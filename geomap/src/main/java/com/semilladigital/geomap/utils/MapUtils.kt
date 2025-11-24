@@ -7,10 +7,11 @@ import android.graphics.Paint
 import com.google.android.gms.maps.model.BitmapDescriptor
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.LatLng
-import com.semilladigital.geomap.data.ParcelaDto
 
 object MapUtils {
 
+    // Asigna un emoji basado en las actividades.
+    // Ahora recibe una lista simple de Strings (del modelo de Dominio)
     fun getEmojiForActivity(actividades: List<String>): String {
         val texto = actividades.joinToString(" ").lowercase()
         return when {
@@ -20,10 +21,12 @@ object MapUtils {
             "ganad" in texto || "borrego" in texto -> "🐑"
             "abeja" in texto || "miel" in texto -> "🐝"
             "caña" in texto -> "🎋"
+            "trigo" in texto -> "🌾"
             else -> "🌱" // Default
         }
     }
 
+    // Calcula el centro geométrico de un polígono para poner el marcador
     fun calculateCentroid(points: List<LatLng>): LatLng {
         var latSum = 0.0
         var lngSum = 0.0
@@ -34,16 +37,7 @@ object MapUtils {
         return LatLng(latSum / points.size, lngSum / points.size)
     }
 
-    // Convierte el formato extraño del JSON a LatLng de Google
-    fun parseCoordinates(raw: List<Map<String, Double>>): List<LatLng> {
-        return raw.mapNotNull {
-            val lat = it["lat"] ?: it["latitud"]
-            val lng = it["lng"] ?: it["longitud"]
-            if (lat != null && lng != null) LatLng(lat, lng) else null
-        }
-    }
-
-    // Crea un icono de mapa a partir de un String (Emoji)
+    // Convierte un Texto/Emoji a un Icono de Mapa (BitmapDescriptor)
     fun textToBitmapDescriptor(text: String, context: Context): BitmapDescriptor? {
         val paint = Paint().apply {
             textSize = 60f
@@ -58,4 +52,8 @@ object MapUtils {
 
         return BitmapDescriptorFactory.fromBitmap(bitmap)
     }
+
+    // NOTA: El método 'parseCoordinates' ha sido ELIMINADO intencionalmente.
+    // Esa lógica de convertir datos crudos ahora vive en el Mapper (GeomapDtos.kt -> toDomain),
+    // cumpliendo con Clean Architecture.
 }

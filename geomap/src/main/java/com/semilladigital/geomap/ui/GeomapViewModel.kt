@@ -2,9 +2,9 @@ package com.semilladigital.geomap.ui
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.semilladigital.geomap.data.GeomapRepository
-import com.semilladigital.geomap.data.ParcelaDto
-import com.semilladigital.geomap.data.UbicacionEspecialDto
+import com.semilladigital.geomap.domain.model.Parcela
+import com.semilladigital.geomap.domain.model.Ubicacion
+import com.semilladigital.geomap.domain.use_case.GetMapDataUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -12,17 +12,17 @@ import javax.inject.Inject
 
 data class GeomapState(
     val isLoading: Boolean = false,
-    val allParcelas: List<ParcelaDto> = emptyList(),
-    val allUbicaciones: List<UbicacionEspecialDto> = emptyList(),
-    val filteredParcelas: List<ParcelaDto> = emptyList(),
-    val filteredUbicaciones: List<UbicacionEspecialDto> = emptyList(),
+    val allParcelas: List<Parcela> = emptyList(),
+    val allUbicaciones: List<Ubicacion> = emptyList(),
+    val filteredParcelas: List<Parcela> = emptyList(),
+    val filteredUbicaciones: List<Ubicacion> = emptyList(),
     val searchQuery: String = "",
-    val selectedUbicacion: UbicacionEspecialDto? = null
+    val selectedUbicacion: Ubicacion? = null
 )
 
 @HiltViewModel
 class GeomapViewModel @Inject constructor(
-    private val repository: GeomapRepository
+    private val getMapDataUseCase: GetMapDataUseCase
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(GeomapState())
@@ -35,7 +35,8 @@ class GeomapViewModel @Inject constructor(
     private fun loadData() {
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true) }
-            val result = repository.getMapData()
+
+            val result = getMapDataUseCase()
 
             result.fold(
                 onSuccess = { data ->
@@ -51,7 +52,6 @@ class GeomapViewModel @Inject constructor(
                 },
                 onFailure = {
                     _state.update { it.copy(isLoading = false) }
-                    // Manejar error (Toast o Snackbar en UI)
                 }
             )
         }
@@ -65,7 +65,7 @@ class GeomapViewModel @Inject constructor(
                 filteredParcelas = s.allParcelas.filter { p ->
                     p.nombre.lowercase().contains(cleanQuery) ||
                             p.municipio.lowercase().contains(cleanQuery) ||
-                            p.usos.any { u -> u.actividadesEspecificas.any { act -> act.lowercase().contains(cleanQuery) } }
+                            p.actividades.any { act -> act.lowercase().contains(cleanQuery) }
                 },
                 filteredUbicaciones = s.allUbicaciones.filter { u ->
                     u.nombre.lowercase().contains(cleanQuery) ||
@@ -76,7 +76,7 @@ class GeomapViewModel @Inject constructor(
         }
     }
 
-    fun selectUbicacion(ubicacion: UbicacionEspecialDto?) {
+    fun selectUbicacion(ubicacion: Ubicacion?) {
         _state.update { it.copy(selectedUbicacion = ubicacion) }
     }
 }
