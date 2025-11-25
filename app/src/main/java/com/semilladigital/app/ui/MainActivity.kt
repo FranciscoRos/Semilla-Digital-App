@@ -16,8 +16,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // CORRECCIÓN: Cambiamos a 'false' para permitir diseño Edge-to-Edge
-        // Esto permite que tu TopBar verde se dibuje detrás de la barra de estado (hora/batería)
+        // Configuración para diseño Edge-to-Edge: fundamental para el correcto padding del mapa
         WindowCompat.setDecorFitsSystemWindows(window, false)
 
         setContent {

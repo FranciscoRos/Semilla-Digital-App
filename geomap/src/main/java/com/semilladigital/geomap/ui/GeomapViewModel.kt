@@ -45,10 +45,10 @@ class GeomapViewModel @Inject constructor(
                             isLoading = false,
                             allParcelas = data.parcelas,
                             allUbicaciones = data.ubicaciones,
-                            filteredParcelas = data.parcelas,
-                            filteredUbicaciones = data.ubicaciones
                         )
                     }
+                    // Inicializa el filtro con el query actual (que es "" al inicio)
+                    applyFilter(_state.value.searchQuery)
                 },
                 onFailure = {
                     _state.update { it.copy(isLoading = false) }
@@ -58,20 +58,30 @@ class GeomapViewModel @Inject constructor(
     }
 
     fun onSearchQueryChange(query: String) {
-        _state.update { s ->
-            val cleanQuery = query.lowercase().trim()
-            s.copy(
-                searchQuery = query,
-                filteredParcelas = s.allParcelas.filter { p ->
-                    p.nombre.lowercase().contains(cleanQuery) ||
-                            p.municipio.lowercase().contains(cleanQuery) ||
-                            p.actividades.any { act -> act.lowercase().contains(cleanQuery) }
-                },
-                filteredUbicaciones = s.allUbicaciones.filter { u ->
-                    u.nombre.lowercase().contains(cleanQuery) ||
-                            u.municipio.lowercase().contains(cleanQuery) ||
-                            u.tipo.lowercase().contains(cleanQuery)
-                }
+        _state.update { it.copy(searchQuery = query) }
+        applyFilter(query)
+    }
+
+    private fun applyFilter(query: String) {
+        val cleanQuery = query.lowercase().trim()
+        val currentState = _state.value
+
+        val filteredParcelas = currentState.allParcelas.filter { p ->
+            p.nombre.lowercase().contains(cleanQuery) ||
+                    p.municipio.lowercase().contains(cleanQuery) ||
+                    p.actividades.any { act -> act.lowercase().contains(cleanQuery) }
+        }
+
+        val filteredUbicaciones = currentState.allUbicaciones.filter { u ->
+            u.nombre.lowercase().contains(cleanQuery) ||
+                    u.municipio.lowercase().contains(cleanQuery) ||
+                    u.tipo.lowercase().contains(cleanQuery)
+        }
+
+        _state.update {
+            it.copy(
+                filteredParcelas = filteredParcelas,
+                filteredUbicaciones = filteredUbicaciones
             )
         }
     }

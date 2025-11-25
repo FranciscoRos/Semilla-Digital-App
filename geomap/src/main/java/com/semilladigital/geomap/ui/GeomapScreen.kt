@@ -219,7 +219,11 @@ fun SearchBar(query: String, onQueryChange: (String) -> Unit, onBack: () -> Unit
     Surface(
         shadowElevation = 4.dp,
         color = MaterialTheme.colorScheme.primary,
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier
+            .fillMaxWidth()
+            // >>> APLICACIÓN DEL INSET DE LA BARRA DE ESTADO (SOLUCIÓN) <<<
+            // Esto empuja el Surface hacia abajo para respetar la barra de estado.
+            .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Top))
     ) {
         Row(
             modifier = Modifier.padding(12.dp),
