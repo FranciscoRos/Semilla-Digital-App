@@ -40,13 +40,11 @@ fun GeomapScreen(
     val state by viewModel.state.collectAsStateWithLifecycle()
     val context = LocalContext.current
 
-    // --- LÓGICA DE CONTEXTO PARA EL CHATBOT ---
     LaunchedEffect(state.selectedUbicacion, state.searchQuery) {
         val ubi = state.selectedUbicacion
         val query = state.searchQuery
 
         if (ubi != null) {
-            // Caso 1: Viendo detalle de una ubicación
             chatViewModel.setContext(
                 "El usuario ha seleccionado un marcador en el Geomapa: '${ubi.nombre}'. " +
                         "Tipo: ${ubi.tipo}. Municipio: ${ubi.municipio}. " +
@@ -55,7 +53,6 @@ fun GeomapScreen(
                         "El usuario tiene un botón para abrir esta ubicación en Google Maps."
             )
         } else {
-            // Caso 2: Explorando el mapa general o buscando
             val searchContext = if (query.isNotBlank()) " Actualmente ha filtrado el mapa buscando: '$query'." else ""
 
             chatViewModel.setContext(
@@ -65,7 +62,6 @@ fun GeomapScreen(
         }
     }
 
-    // 1. Gestión de Permisos de Ubicación
     var hasLocationPermission by remember {
         mutableStateOf(
             ContextCompat.checkSelfPermission(
@@ -86,19 +82,46 @@ fun GeomapScreen(
         }
     }
 
-    // 2. Configuración del Mapa
     val cameraPositionState = rememberCameraPositionState {
-        // Centrado en Chetumal/Bacalar como punto de partida
         position = CameraPosition.fromLatLngZoom(LatLng(18.500, -88.300), 10f)
     }
 
     Scaffold(
         topBar = {
-            SearchBar(
-                query = state.searchQuery,
-                onQueryChange = { viewModel.onSearchQueryChange(it) },
-                onBack = onBack
-            )
+            Surface(
+                color = MaterialTheme.colorScheme.primary,
+                shadowElevation = 4.dp,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .statusBarsPadding() // APLICACIÓN CLAVE
+                        .padding(12.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    IconButton(onClick = onBack) {
+                        Icon(Icons.Default.ArrowBack, contentDescription = "Atrás", tint = Color.White)
+                    }
+                    TextField(
+                        value = state.searchQuery,
+                        onValueChange = { viewModel.onSearchQueryChange(it) },
+                        placeholder = { Text("Buscar cultivo, municipio...", color = Color.LightGray) },
+                        leadingIcon = { Icon(Icons.Default.Search, null, tint = Color.Gray) },
+                        trailingIcon = if(state.searchQuery.isNotEmpty()) {
+                            { IconButton(onClick = { viewModel.onSearchQueryChange("") }) { Icon(Icons.Default.Close, null) } }
+                        } else null,
+                        colors = TextFieldDefaults.colors(
+                            focusedContainerColor = Color.White,
+                            unfocusedContainerColor = Color.White,
+                            focusedIndicatorColor = Color.Transparent,
+                            unfocusedIndicatorColor = Color.Transparent
+                        ),
+                        shape = RoundedCornerShape(24.dp),
+                        modifier = Modifier.weight(1f).height(50.dp)
+                    )
+                }
+            }
         }
     ) { padding ->
         Box(modifier = Modifier.padding(padding).fillMaxSize()) {
@@ -115,7 +138,6 @@ fun GeomapScreen(
                     isMyLocationEnabled = hasLocationPermission
                 )
             ) {
-                // --- DIBUJAR PARCELAS (Polígonos) ---
                 state.filteredParcelas.forEach { parcela ->
                     val coords = parcela.coordenadas.map { LatLng(it.lat, it.lng) }
 
@@ -140,7 +162,6 @@ fun GeomapScreen(
                     }
                 }
 
-                // --- DIBUJAR UBICACIONES ESPECIALES (Marcadores) ---
                 state.filteredUbicaciones.forEach { ubicacion ->
                     Marker(
                         state = MarkerState(
@@ -162,7 +183,6 @@ fun GeomapScreen(
         }
     }
 
-    // 3. Bottom Sheet de Detalles
     if (state.selectedUbicacion != null) {
         val ubi = state.selectedUbicacion!!
         ModalBottomSheet(onDismissRequest = { viewModel.selectUbicacion(null) }) {
@@ -209,46 +229,6 @@ fun GeomapScreen(
                 }
                 Spacer(Modifier.height(24.dp))
             }
-        }
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun SearchBar(query: String, onQueryChange: (String) -> Unit, onBack: () -> Unit) {
-    Surface(
-        shadowElevation = 4.dp,
-        color = MaterialTheme.colorScheme.primary,
-        modifier = Modifier
-            .fillMaxWidth()
-            // >>> APLICACIÓN DEL INSET DE LA BARRA DE ESTADO (SOLUCIÓN) <<<
-            // Esto empuja el Surface hacia abajo para respetar la barra de estado.
-            .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Top))
-    ) {
-        Row(
-            modifier = Modifier.padding(12.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            IconButton(onClick = onBack) {
-                Icon(Icons.Default.ArrowBack, contentDescription = "Atrás", tint = Color.White)
-            }
-            TextField(
-                value = query,
-                onValueChange = onQueryChange,
-                placeholder = { Text("Buscar cultivo, municipio...", color = Color.LightGray) },
-                leadingIcon = { Icon(Icons.Default.Search, null, tint = Color.Gray) },
-                trailingIcon = if(query.isNotEmpty()) {
-                    { IconButton(onClick = { onQueryChange("") }) { Icon(Icons.Default.Close, null) } }
-                } else null,
-                colors = TextFieldDefaults.colors(
-                    focusedContainerColor = Color.White,
-                    unfocusedContainerColor = Color.White,
-                    focusedIndicatorColor = Color.Transparent,
-                    unfocusedIndicatorColor = Color.Transparent
-                ),
-                shape = RoundedCornerShape(24.dp),
-                modifier = Modifier.weight(1f).height(50.dp)
-            )
         }
     }
 }
