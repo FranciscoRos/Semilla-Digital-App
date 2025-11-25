@@ -1,5 +1,6 @@
 package com.semilladigital.chatbot.data
 
+import com.semilladigital.app.core.data.storage.SessionStorage
 import com.semilladigital.chatbot.model.ChatMessage
 import com.semilladigital.chatbot.model.GeminiRequest
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -9,7 +10,8 @@ import javax.inject.Singleton
 
 @Singleton
 class ChatRepository @Inject constructor(
-    private val api: ChatbotApi
+    private val api: ChatbotApi,
+    private val sessionStorage: SessionStorage
 ) {
     private val _messages = MutableStateFlow<List<ChatMessage>>(emptyList())
     val messages = _messages.asStateFlow()
@@ -17,7 +19,6 @@ class ChatRepository @Inject constructor(
     private val _isLoading = MutableStateFlow(false)
     val isLoading = _isLoading.asStateFlow()
 
-    // Variable para guardar el contexto actual (invisible para el usuario)
     private var currentContext: String = ""
 
     fun setContext(context: String) {
@@ -27,21 +28,40 @@ class ChatRepository @Inject constructor(
     suspend fun sendMessage(prompt: String) {
         if (prompt.isBlank()) return
 
-        // 1. En la UI mostramos solo lo que el usuario escribió
         val userMsg = ChatMessage(text = prompt, isUser = true)
         _messages.value = _messages.value + userMsg
         _isLoading.value = true
 
         try {
-            // 2. Preparamos el prompt REAL con el contexto inyectado
-            val promptToSend = if (currentContext.isNotBlank()) {
-                "[CONTEXTO DEL SISTEMA: $currentContext]\n\nPREGUNTA DEL USUARIO: $prompt"
+            val actividades = sessionStorage.getActividades().joinToString(", ")
+            val userProfileBlock = """
+                [PERFIL DEL USUARIO - CONTEXTO PERMANENTE]
+                - ID: ${sessionStorage.getUserId()}
+                - Nombre: ${sessionStorage.getNombreCompleto()}
+                - Email: ${sessionStorage.getEmail()}
+                - Rol: ${sessionStorage.getRol()}
+                - Estatus: ${sessionStorage.getEstatus()}
+                - Actividades Productivas: $actividades
+            """.trimIndent()
+
+
+            val screenContextBlock = if (currentContext.isNotBlank()) {
+                "\n[CONTEXTO VISUAL / PANTALLA ACTUAL]\n$currentContext"
             } else {
-                prompt
+                ""
             }
 
-            // 3. Enviamos el prompt enriquecido a la API
-            val response = api.sendMessage(GeminiRequest(promptToSend))
+
+            val finalPrompt = """
+                $userProfileBlock
+                $screenContextBlock
+                
+                ---------------------------------------------------
+                PREGUNTA O COMENTARIO DEL USUARIO:
+                $prompt
+            """.trimIndent()
+
+            val response = api.sendMessage(GeminiRequest(prompt = finalPrompt))
 
             if (response.isSuccessful && response.body() != null) {
                 val botMsg = ChatMessage(text = response.body()!!.respuesta, isUser = false)

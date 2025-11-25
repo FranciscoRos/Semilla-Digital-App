@@ -65,16 +65,16 @@ class DashboardViewModel @Inject constructor(
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true) }
 
-            // 1. Intentar avisar al backend (Best Effort)
+
             val token = sessionStorage.getToken()
             if (!token.isNullOrEmpty()) {
                 authRepository.logout(token)
             }
 
-            // 2. Borrar sesión local
+            //  Borrar sesión local
             sessionStorage.clearSession()
 
-            // 3. Avisar a la UI que ya terminamos para que navegue
+            // Avisar a la UI que ya terminamos para que navegue
             _state.update { it.copy(isLoading = false, isLoggedOut = true) }
         }
     }
