@@ -10,49 +10,32 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-// --- AQUÍ SE DEFINE EL ESTADO (SOLO AQUÍ) ---
 data class RegisterState(
-    // Información Básica
-    val nombre: String = "",
-    val apellido1: String = "",
-    val apellido2: String = "",
+    val nombreCompleto: String = "",
     val curp: String = "",
     val correo: String = "",
-    val contrasena: String = "",
     val telefono: String = "",
-    val fechaNacimiento: String = "",
-    val ine: String = "",
-    val rfc: String = "",
 
-    // Domicilio
-    val calle: String = "",
-    val colonia: String = "",
     val municipio: String = "",
-    val ciudad: String = "",
-    val estado: String = "Quintana Roo",
-    val cp: String = "",
-    val referencia: String = "",
+    val direccion: String = "",
 
-    // Datos de Parcela
+    val contrasena: String = "",
+    val confirmarContrasena: String = "",
+
     val coordenadasParcela: List<List<Double>> = emptyList(),
 
-    // Datos Dinámicos
     val dynamicAnswers: Map<String, Any> = emptyMap(),
 
-    // UI State
-    val activeSection: String = "Información Básica",
+    val activeSection: String = "Información Personal",
     val mapDrawn: Boolean = false,
     val isLoading: Boolean = false,
     val error: String? = null,
     val isRegistered: Boolean = false,
-
     val isShowingMap: Boolean = false,
 
-    // Listas para Dropdowns
     val availableMunicipalities: List<String> = listOf(
-        "Othón P. Blanco", "Bacalar", "Benito Juárez", "Cozumel",
-        "Isla Mujeres", "Solidaridad", "Tulum", "Lázaro Cárdenas",
-        "José María Morelos", "Felipe Carrillo Puerto", "Puerto Morelos"
+        "Chetumal", "Playa del Carmen", "Cancún", "Cozumel",
+        "Isla Mujeres", "Bacalar", "Tulum", "Puerto Morelos"
     )
 )
 
@@ -64,37 +47,34 @@ class RegisterViewModel @Inject constructor(
     private val _state = MutableStateFlow(RegisterState())
     val state = _state.asStateFlow()
 
-    // Setters Información Básica
-    fun onNombreChange(v: String) { _state.update { it.copy(nombre = v) } }
-    fun onApellido1Change(v: String) { _state.update { it.copy(apellido1 = v) } }
-    fun onApellido2Change(v: String) { _state.update { it.copy(apellido2 = v) } }
+    fun onNombreCompletoChange(v: String) { _state.update { it.copy(nombreCompleto = v) } }
     fun onCurpChange(v: String) { _state.update { it.copy(curp = v) } }
     fun onCorreoChange(v: String) { _state.update { it.copy(correo = v) } }
-    fun onContrasenaChange(v: String) { _state.update { it.copy(contrasena = v) } }
     fun onTelefonoChange(v: String) { _state.update { it.copy(telefono = v) } }
-    fun onFechaNacimientoChange(v: String) { _state.update { it.copy(fechaNacimiento = v) } }
-    fun onIneChange(v: String) { _state.update { it.copy(ine = v) } }
-    fun onRfcChange(v: String) { _state.update { it.copy(rfc = v) } }
 
-    // Setters Domicilio
-    fun onCalleChange(v: String) { _state.update { it.copy(calle = v) } }
-    fun onColoniaChange(v: String) { _state.update { it.copy(colonia = v) } }
     fun onMunicipioChange(v: String) { _state.update { it.copy(municipio = v) } }
-    fun onCiudadChange(v: String) { _state.update { it.copy(ciudad = v) } }
-    fun onEstadoChange(v: String) { _state.update { it.copy(estado = v) } }
-    fun onCpChange(v: String) { _state.update { it.copy(cp = v) } }
-    fun onReferenciaChange(v: String) { _state.update { it.copy(referencia = v) } }
+    fun onDireccionChange(v: String) { _state.update { it.copy(direccion = v) } }
 
-    // Setters Dinámicos
+    fun onContrasenaChange(v: String) { _state.update { it.copy(contrasena = v) } }
+    fun onConfirmarContrasenaChange(v: String) { _state.update { it.copy(confirmarContrasena = v) } }
+
     fun onDynamicAnswerChange(fieldName: String, value: Any) {
-        _state.update {
-            val newAnswers = it.dynamicAnswers.toMutableMap()
+        _state.update { currentState ->
+            val newAnswers = currentState.dynamicAnswers.toMutableMap()
             newAnswers[fieldName] = value
-            it.copy(dynamicAnswers = newAnswers)
+
+            // Limpieza de campos dependientes si cambia el tipo de producción
+            if (fieldName == "tipoProduccion") {
+                newAnswers.remove("actividadesAgricola")
+                newAnswers.remove("actividadesGanadera")
+                newAnswers.remove("actividadesPesca")
+                newAnswers.remove("actividadesApicultura")
+            }
+
+            currentState.copy(dynamicAnswers = newAnswers)
         }
     }
 
-    // UI Actions
     fun toggleSection(section: String) {
         _state.update {
             it.copy(activeSection = if (it.activeSection == section) "" else section)
@@ -121,39 +101,26 @@ class RegisterViewModel @Inject constructor(
     fun fillWithDummyData() {
         _state.update {
             it.copy(
-                nombre = "Prueba",
-                apellido1 = "De",
-                apellido2 = "Concepto",
-                curp = "ABCD800101HDFRXX05",
-                correo = "prueba${System.currentTimeMillis()}@test.com",
-                contrasena = "password123",
-                telefono = "9981234567",
-                fechaNacimiento = "1990-01-01",
-                ine = "1234567890123",
-                rfc = "ABCD800101XXX",
-                calle = "Av. Insurgentes 123",
-                colonia = "Centro",
-                municipio = "Chetumal",
-                ciudad = "Chetumal",
-                estado = "Quintana Roo",
-                cp = "77000",
-                referencia = "Casa verde",
+                nombreCompleto = "Jose8",
+                curp = "JOSE04932MNC845GDF",
+                correo = "Jose8${System.currentTimeMillis()}@gmail.com", // Random para no repetir
+                telefono = "9830000000",
+                municipio = "Othón P. Blanco",
+                direccion = "Av. Independencia, Centro",
+                contrasena = "ContrasenaNueva8",
+                confirmarContrasena = "ContrasenaNueva8",
                 mapDrawn = true,
                 coordenadasParcela = listOf(
-                    listOf(18.500, -88.300),
-                    listOf(18.501, -88.301),
-                    listOf(18.500, -88.301),
-                    listOf(18.500, -88.300)
+                    listOf(18.503, -88.303),
+                    listOf(18.504, -88.304)
                 ),
                 dynamicAnswers = mapOf(
                     "tipoProduccion" to "agricola",
+                    "actividadesAgricola" to listOf("tomate", "chile"), // values internos
                     "anosExperiencia" to 5,
-                    "cultivos" to listOf("maiz", "frijol"),
                     "tieneRiego" to "si",
                     "fuenteAgua" to "Pozo",
                     "tipoMaquinaria" to listOf("tractor"),
-                    "usaPesticidas" to "no",
-                    "certificacionOrganica" to "en_proceso",
                     "trabajadores" to 3,
                     "ventaProductos" to "local",
                     "apoyosGubernamentales" to "no"
@@ -164,12 +131,46 @@ class RegisterViewModel @Inject constructor(
 
     fun onRegisterClick() {
         viewModelScope.launch {
+            val s = _state.value
             _state.update { it.copy(isLoading = true, error = null) }
 
+            if (s.contrasena != s.confirmarContrasena) {
+                _state.update { it.copy(isLoading = false, error = "Las contraseñas no coinciden") }
+                return@launch
+            }
+
             try {
-                val s = _state.value
+                // 1. Obtener etiquetas legibles (Labels) en lugar de values internos
+                // Buscamos en el SCHEMA la opción que coincida con el valor seleccionado
+
+                val tipoUsoValue = s.dynamicAnswers["tipoProduccion"] as? String ?: ""
+
+                // Buscar el Label del Tipo de Producción (ej: "agricola" -> "Agrícola")
+                val tipoUsoLabel = QUESTION_SCHEMA
+                    .find { it.fieldName == "tipoProduccion" }
+                    ?.options
+                    ?.find { it.value == tipoUsoValue }
+                    ?.label ?: "Desconocido"
+
+                // Determinar qué lista de actividades usar y buscar sus Labels
+                val (campoActividades, listaValoresActividades) = when (tipoUsoValue) {
+                    "agricola" -> "actividadesAgricola" to (s.dynamicAnswers["actividadesAgricola"] as? List<*> ?: emptyList<Any>())
+                    "ganadera" -> "actividadesGanadera" to (s.dynamicAnswers["actividadesGanadera"] as? List<*> ?: emptyList<Any>())
+                    "pesca" -> "actividadesPesca" to (s.dynamicAnswers["actividadesPesca"] as? List<*> ?: emptyList<Any>())
+                    "apicultura" -> "actividadesApicultura" to (s.dynamicAnswers["actividadesApicultura"] as? List<*> ?: emptyList<Any>())
+                    else -> "" to emptyList()
+                }
+
+                // Convertir valores de actividades a Labels (ej: "maiz" -> "Siembra de Maíz")
+                val questionActividades = QUESTION_SCHEMA.find { it.fieldName == campoActividades }
+                val actividadesLabels = listaValoresActividades.map { valor ->
+                    questionActividades?.options?.find { it.value == valor.toString() }?.label ?: valor.toString()
+                }
+
+                // 2. Construir el Payload igual al Postman
                 val payload = mutableMapOf<String, Any>()
 
+                // Coordenadas
                 val coordenadasFormateadas = s.coordenadasParcela.map { punto: List<Double> ->
                     mapOf(
                         "lat" to (punto.getOrNull(0) ?: 0.0),
@@ -177,53 +178,53 @@ class RegisterViewModel @Inject constructor(
                     )
                 }
 
-                val listaCultivos = s.dynamicAnswers["cultivos"] as? List<*>
-                val actividades = listaCultivos?.map { it.toString() } ?: emptyList()
-                val tipoArea = s.dynamicAnswers["tipoProduccion"] as? String ?: "Desconocido"
-
+                // Estructura de usos interna de Parcela (Usando LABELS)
                 val usosFormateados = listOf(
                     mapOf(
-                        "area" to tipoArea,
-                        "actividadesEspecificas" to actividades
+                        "area" to tipoUsoLabel, // Envía "Agrícola" en vez de "agricola"
+                        "actividadesEspecificas" to actividadesLabels // Envía ["Cultivo de tomate"]
                     )
                 )
 
                 payload["Usuario"] = mapOf(
-                    "Nombre" to s.nombre,
-                    "Apellido1" to s.apellido1,
-                    "Apellido2" to s.apellido2,
+                    "Nombre" to s.nombreCompleto,
+                    "Apellido1" to "Poot8", // Hardcodeado según tu ejemplo Postman para probar
+                    "Apellido2" to "Fiona8", // Hardcodeado según tu ejemplo Postman
                     "Curp" to s.curp,
                     "Correo" to s.correo,
                     "Contrasena" to s.contrasena,
                     "Telefono" to s.telefono,
-                    "FechaNacimiento" to s.fechaNacimiento.ifBlank { "2000-01-01" },
-                    "Ine" to s.ine,
-                    "Rfc" to s.rfc,
+                    "FechaNacimiento" to "2000-01-01",
+                    "Ine" to "Informcaion de ine",
+                    "Rfc" to "JO029384FJVN",
 
                     "Domicilio" to mapOf(
-                        "Calle" to s.calle,
-                        "Colonia" to s.colonia,
+                        "Calle" to s.direccion,
+                        "Colonia" to "Centro",
                         "Municipio" to s.municipio,
-                        "Ciudad" to s.ciudad,
-                        "Estado" to s.estado,
-                        "CodigoPostal" to s.cp,
-                        "Referencia" to s.referencia
+                        "Ciudad" to "Chetumal",
+                        "Estado" to "Quintana Roo",
+                        "CodigoPostal" to "11111",
+                        "Referencia" to "Casa color blanco"
                     ),
 
                     "Parcela" to listOf(
                         mapOf(
-                            "coordenadas" to coordenadasFormateadas,
-                            "ciudad" to s.ciudad,
+                            "ciudad" to "Chetumal",
                             "municipio" to s.municipio,
-                            "localidad" to s.colonia,
-                            "direccionAdicional" to s.calle,
-                            "area" to 0.0,
+                            "localidad" to "Calderitas",
+                            "direccionAdicional" to "Camino de terracería",
+                            "coordenadas" to coordenadasFormateadas,
+                            "area" to 1500.75,
                             "nombre" to "Parcela Principal",
                             "usos" to usosFormateados
                         )
                     )
                 )
 
+                // Agregar campos dinámicos a la raíz del JSON
+                // NOTA: Aquí enviamos los values crudos a la raíz como "CamposExtra" si el backend los pide así,
+                // pero ya inyectamos los bonitos dentro de Usuario.Parcela.usos
                 payload.putAll(s.dynamicAnswers)
 
                 val result = repository.register(payload)

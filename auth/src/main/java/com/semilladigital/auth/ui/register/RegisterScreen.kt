@@ -45,7 +45,6 @@ fun RegisterScreen(
         }
     }
 
-    // --- LÓGICA DEL MAPA ---
     if (state.isShowingMap) {
         ParcelMapScreen(
             onPolygonCompleted = { puntos -> viewModel.onPolygonSaved(puntos) },
@@ -54,9 +53,7 @@ fun RegisterScreen(
         return
     }
 
-    // --- PANTALLA DEL FORMULARIO ---
     SemillaDigitalTheme {
-
         Scaffold(containerColor = Color(0xFFF3F4F6)) { padding ->
             LazyColumn(
                 modifier = Modifier
@@ -65,7 +62,6 @@ fun RegisterScreen(
                     .padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                // Header
                 item {
                     TextButton(
                         onClick = onBack,
@@ -77,18 +73,16 @@ fun RegisterScreen(
                         Text("Volver al Login", fontWeight = FontWeight.Medium)
                     }
 
-                    //modo escuro arriba
                     val view = LocalView.current
                     val window = (view.context as Activity).window
                     WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = true
 
                     Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
-                        Text("Registro de usuario y Parcelas", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
-                        Text("Complete todos los campos", style = MaterialTheme.typography.bodyMedium, color = Color.Gray)
+                        Text("Crear Cuenta de Productor", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
+                        Text("Completa el siguiente formulario para registrarte", style = MaterialTheme.typography.bodyMedium, color = Color.Gray)
                     }
                 }
 
-                // Botón Debug
                 item {
                     Button(
                         onClick = { viewModel.fillWithDummyData() },
@@ -99,28 +93,20 @@ fun RegisterScreen(
                     }
                 }
 
-                // Sección 1: Información Básica
                 item {
                     ExpandableSection(
-                        title = "Información Básica",
+                        title = "Información Personal",
                         icon = Icons.Default.Person,
-                        isExpanded = state.activeSection == "Información Básica",
-                        onToggle = { viewModel.toggleSection("Información Básica") }
+                        isExpanded = state.activeSection == "Información Personal",
+                        onToggle = { viewModel.toggleSection("Información Personal") }
                     ) {
-                        RegisterInput("Nombre *", state.nombre) { viewModel.onNombreChange(it) }
-                        RegisterInput("Primer Apellido *", state.apellido1) { viewModel.onApellido1Change(it) }
-                        RegisterInput("Segundo Apellido", state.apellido2) { viewModel.onApellido2Change(it) }
+                        RegisterInput("Nombre Completo *", state.nombreCompleto) { viewModel.onNombreCompletoChange(it) }
                         RegisterInput("CURP *", state.curp) { viewModel.onCurpChange(it) }
                         RegisterInput("Correo Electrónico *", state.correo, KeyboardType.Email) { viewModel.onCorreoChange(it) }
-                        RegisterInput("Contraseña *", state.contrasena, KeyboardType.Text, true) { viewModel.onContrasenaChange(it) }
-                        RegisterInput("Teléfono *", state.telefono, KeyboardType.Phone) { viewModel.onTelefonoChange(it) }
-                        RegisterInput("Fecha de Nacimiento * (aaaa-mm-dd)", state.fechaNacimiento) { viewModel.onFechaNacimientoChange(it) }
-                        RegisterInput("Número de INE (reverso) *", state.ine) { viewModel.onIneChange(it) }
-                        RegisterInput("RFC *", state.rfc) { viewModel.onRfcChange(it) }
+                        RegisterInput("Teléfono", state.telefono, KeyboardType.Phone) { viewModel.onTelefonoChange(it) }
                     }
                 }
 
-                // Sección 2: Domicilio
                 item {
                     ExpandableSection(
                         title = "Domicilio",
@@ -128,29 +114,22 @@ fun RegisterScreen(
                         isExpanded = state.activeSection == "Domicilio",
                         onToggle = { viewModel.toggleSection("Domicilio") }
                     ) {
-                        RegisterInput("Calle *", state.calle) { viewModel.onCalleChange(it) }
-                        RegisterInput("Colonia *", state.colonia) { viewModel.onColoniaChange(it) }
-
                         Text("Municipio *", style = MaterialTheme.typography.labelMedium, color = Color.Gray)
                         SimpleDropdown(
                             options = state.availableMunicipalities,
                             selectedOption = state.municipio,
                             onOptionSelected = { viewModel.onMunicipioChange(it) },
-                            placeholder = "Seleccionar..."
+                            placeholder = "Seleccionar municipio"
                         )
                         Spacer(Modifier.height(8.dp))
 
-                        RegisterInput("Ciudad *", state.ciudad) { viewModel.onCiudadChange(it) }
-                        RegisterInput("Estado *", state.estado) { viewModel.onEstadoChange(it) }
-                        RegisterInput("Código Postal *", state.cp, KeyboardType.Number) { viewModel.onCpChange(it) }
-                        RegisterInput("Referencias", state.referencia) { viewModel.onReferenciaChange(it) }
+                        RegisterInput("Dirección *", state.direccion) { viewModel.onDireccionChange(it) }
                     }
                 }
 
-                // Sección 3: Parcelas
                 item {
                     ExpandableSection(
-                        title = "Parcelas",
+                        title = "Ubicación de tu Parcela",
                         icon = Icons.Default.Map,
                         isExpanded = state.activeSection == "Parcelas",
                         onToggle = { viewModel.toggleSection("Parcelas") }
@@ -174,7 +153,7 @@ fun RegisterScreen(
                                     modifier = Modifier.size(40.dp)
                                 )
                                 Text(
-                                    if (state.mapDrawn) "Parcela delimitada correctamente" else "Mapa Satelital",
+                                    if (state.mapDrawn) "Parcela delimitada correctamente" else "Mapa interactivo",
                                     color = MaterialTheme.colorScheme.primary,
                                     fontWeight = FontWeight.Bold
                                 )
@@ -193,14 +172,12 @@ fun RegisterScreen(
                         ) {
                             Icon(if (state.mapDrawn) Icons.Default.Edit else Icons.Default.Create, null)
                             Spacer(Modifier.width(8.dp))
-                            Text(if(state.mapDrawn) "Editar Parcela" else "Dibujar Parcela")
+                            Text(if(state.mapDrawn) "Editar Parcela" else "Dibujar polígono de parcela")
                         }
                     }
                 }
 
-                // Secciones Dinámicas
                 val groupedQuestions = QUESTION_SCHEMA.groupBy { it.section }
-
                 groupedQuestions.forEach { (sectionName, questions) ->
                     item {
                         ExpandableSection(
@@ -210,8 +187,9 @@ fun RegisterScreen(
                             onToggle = { viewModel.toggleSection(sectionName) }
                         ) {
                             questions.forEach { question ->
+                                val dynamicAnswer = state.dynamicAnswers[question.conditionalField]
                                 val showQuestion = question.conditionalField == null ||
-                                        state.dynamicAnswers[question.conditionalField] == question.conditionalValue
+                                        dynamicAnswer == question.conditionalValue
 
                                 if (showQuestion) {
                                     DynamicQuestionInput(
@@ -226,7 +204,18 @@ fun RegisterScreen(
                     }
                 }
 
-                // Botón Registrarse
+                item {
+                    ExpandableSection(
+                        title = "Crear Contraseña",
+                        icon = Icons.Default.Lock,
+                        isExpanded = state.activeSection == "Contraseña",
+                        onToggle = { viewModel.toggleSection("Contraseña") }
+                    ) {
+                        RegisterInput("Contraseña *", state.contrasena, KeyboardType.Text, true) { viewModel.onContrasenaChange(it) }
+                        RegisterInput("Confirmar Contraseña *", state.confirmarContrasena, KeyboardType.Text, true) { viewModel.onConfirmarContrasenaChange(it) }
+                    }
+                }
+
                 item {
                     Spacer(Modifier.height(16.dp))
 
@@ -239,19 +228,28 @@ fun RegisterScreen(
                         )
                     }
 
-                    Button(
-                        onClick = { viewModel.onRegisterClick() },
-                        modifier = Modifier.fillMaxWidth().height(56.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF15803D)),
-                        enabled = !state.isLoading,
-                        shape = RoundedCornerShape(8.dp)
-                    ) {
-                        if (state.isLoading) {
-                            CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
-                        } else {
-                            Icon(Icons.Default.Save, null)
-                            Spacer(Modifier.width(8.dp))
-                            Text("Registrarse", fontSize = 18.sp)
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Button(
+                            onClick = { viewModel.onRegisterClick() },
+                            modifier = Modifier.weight(1f).height(56.dp),
+                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF15803D)),
+                            enabled = !state.isLoading,
+                            shape = RoundedCornerShape(8.dp)
+                        ) {
+                            if (state.isLoading) {
+                                CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
+                            } else {
+                                Text("Crear Cuenta", fontSize = 18.sp)
+                            }
+                        }
+
+                        Button(
+                            onClick = onBack,
+                            modifier = Modifier.weight(1f).height(56.dp),
+                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE5E7EB), contentColor = Color.Black),
+                            shape = RoundedCornerShape(8.dp)
+                        ) {
+                            Text("Cancelar", fontSize = 18.sp)
                         }
                     }
                     Spacer(Modifier.height(32.dp))
@@ -260,8 +258,6 @@ fun RegisterScreen(
         }
     }
 }
-
-// UI Components
 
 @Composable
 fun ExpandableSection(
