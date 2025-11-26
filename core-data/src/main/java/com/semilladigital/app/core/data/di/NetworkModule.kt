@@ -17,7 +17,7 @@ import javax.inject.Singleton
 object NetworkModule {
 
     // 1. Define la URL base de tu API de Laravel
-    private const val BASE_URL = "http:10.62.206.108:8000/api/" // <-- IP LOCAL
+    private const val BASE_URL = "http:192.168.3.88:8000/api/" // <-- IP LOCAL
 
     // 2. Provee un interceptor de logs (para ver las llamadas en el Logcat)
     @Provides
