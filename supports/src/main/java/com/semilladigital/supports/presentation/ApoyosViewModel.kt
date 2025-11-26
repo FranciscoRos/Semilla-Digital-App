@@ -19,7 +19,8 @@ data class ApoyosState(
     val error: String? = null,
     val showDetailsDialog: Boolean = false,
     val selectedApoyo: Apoyo? = null,
-    val actividadesDelUsuario: List<String> = emptyList()
+    val actividadesDelUsuario: List<String> = emptyList(),
+    val searchQuery: String = "" // <--- AGREGADO PARA EL BUSCADOR
 )
 
 @HiltViewModel
@@ -91,5 +92,10 @@ class ApoyosViewModel @Inject constructor(
 
     fun refreshApoyos() {
         loadApoyos()
+    }
+
+    // <--- NUEVA FUNCIÓN PARA EL BUSCADOR
+    fun onSearchQueryChange(query: String) {
+        _state.update { it.copy(searchQuery = query) }
     }
 }

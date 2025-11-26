@@ -18,27 +18,53 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.semilladigital.supports.domain.model.Apoyo
 import com.semilladigital.supports.domain.model.Requerimiento
-import com.semilladigital.supports.domain.model.ApoyoConfig
+import com.semilladigital.chatbot.presentation.ChatViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ApoyosScreen(
     onBack: () -> Unit,
-    viewModel: ApoyosViewModel = hiltViewModel()
+    viewModel: ApoyosViewModel = hiltViewModel(),
+    chatViewModel: ChatViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
-    var searchText by remember { mutableStateOf("") }
 
     val filteredApoyos = state.todosLosApoyos.filter {
-        it.nombre_programa.contains(searchText, ignoreCase = true) ||
-                it.institucion_acronimo.contains(searchText, ignoreCase = true) ||
-                it.descripcion.contains(searchText, ignoreCase = true)
+        it.nombre_programa.contains(state.searchQuery, ignoreCase = true) ||
+                it.institucion_acronimo.contains(state.searchQuery, ignoreCase = true) ||
+                it.descripcion.contains(state.searchQuery, ignoreCase = true)
+    }
+
+    LaunchedEffect(state.selectedApoyo, filteredApoyos) {
+        val apoyo = state.selectedApoyo
+
+        if (apoyo != null) {
+            val reqs = apoyo.Requerimientos.joinToString(", ") { req ->
+                req.nombre ?: req.Requisito ?: "Requisito general"
+            }
+            chatViewModel.setContext(
+                "El usuario está viendo el detalle del Apoyo: '${apoyo.nombre_programa}'. " +
+                        "Institución: ${apoyo.institucion_acronimo}. " +
+                        "Objetivo: ${apoyo.objetivo}. " +
+                        "Requisitos clave: $reqs."
+            )
+        } else {
+            val listaApoyosTexto = filteredApoyos.joinToString(separator = "\n") { item ->
+                "- Nombre: ${item.nombre_programa} (${item.institucion_acronimo}). Objetivo: ${item.objetivo}"
+            }
+
+            val searchContext = if (state.searchQuery.isNotBlank()) " Buscando: '${state.searchQuery}'." else ""
+
+            chatViewModel.setContext(
+                "El usuario está en la lista de Apoyos y Programas.$searchContext\n" +
+                        "LISTA DE APOYOS DISPONIBLES EN PANTALLA:\n$listaApoyosTexto"
+            )
+        }
     }
 
     Scaffold(
@@ -62,8 +88,8 @@ fun ApoyosScreen(
         ) {
             item {
                 OutlinedTextField(
-                    value = searchText,
-                    onValueChange = { searchText = it },
+                    value = state.searchQuery,
+                    onValueChange = { viewModel.onSearchQueryChange(it) },
                     label = { Text("Buscar apoyos...") },
                     leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
                     modifier = Modifier.fillMaxWidth(),
@@ -85,7 +111,7 @@ fun ApoyosScreen(
                     }
                 }
             } else {
-                if (state.actividadesDelUsuario.isNotEmpty() && state.apoyosParaTi.isNotEmpty()) {
+                if (state.actividadesDelUsuario.isNotEmpty() && state.apoyosParaTi.isNotEmpty() && state.searchQuery.isEmpty()) {
                     item {
                         Text("Apoyos para ti 🌱", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
                         Text("Basado en tus actividades productivas", style = MaterialTheme.typography.bodySmall, color = Color.Gray)
@@ -124,8 +150,7 @@ fun ApoyosScreen(
 @Composable
 fun ApoyoCard(apoyo: Apoyo, isSuggested: Boolean, onClick: () -> Unit) {
     Card(
-        modifier = Modifier
-            .clickable(onClick = onClick),
+        modifier = Modifier.clickable(onClick = onClick),
         shape = RoundedCornerShape(16.dp),
         elevation = CardDefaults.cardElevation(4.dp),
         colors = CardDefaults.cardColors(containerColor = if (isSuggested) Color(0xFFE8F5E9) else Color.White)
