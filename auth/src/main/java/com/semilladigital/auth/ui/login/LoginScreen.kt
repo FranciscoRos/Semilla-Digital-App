@@ -1,8 +1,8 @@
 package com.semilladigital.auth.ui.login
 
 import android.app.Activity
+import android.view.WindowManager
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardActions
@@ -19,6 +19,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
@@ -45,21 +46,9 @@ fun LoginScreen(
     val viewModel: LoginViewModel = hiltViewModel()
     val state by viewModel.state.collectAsStateWithLifecycle()
 
-    // Variables para UI
     var passwordVisible by remember { mutableStateOf(false) }
     val focusManager = LocalFocusManager.current
     val keyboardController = LocalSoftwareKeyboardController.current
-
-    // Configuración de Status Bar (Solo una vez)
-    val view = LocalView.current
-    val darkTheme = isSystemInDarkTheme()
-    if (!view.isInEditMode) {
-        SideEffect {
-            val window = (view.context as Activity).window
-            // Iconos oscuros si el tema es claro, iconos claros si el tema es oscuro
-            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = !darkTheme
-        }
-    }
 
     LaunchedEffect(state.loginSuccess) {
         if (state.loginSuccess) {
@@ -68,26 +57,34 @@ fun LoginScreen(
     }
 
     SemillaDigitalTheme {
+        val view = LocalView.current
+        if (!view.isInEditMode) {
+            SideEffect {
+                val window = (view.context as Activity).window
+                window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS)
+                window.statusBarColor = Color.White.toArgb()
+                WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = true
+            }
+        }
+
         Scaffold { paddingValues ->
             Box(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(paddingValues)
-                    .padding(24.dp), // Un poco más de margen a los lados
-                contentAlignment = Alignment.Center // Centramos todo verticalmente
+                    .padding(24.dp),
+                contentAlignment = Alignment.Center
             ) {
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(20.dp),
                     modifier = Modifier
                         .fillMaxWidth()
-                        .verticalScroll(rememberScrollState()) // Scroll por si el teclado tapa
+                        .verticalScroll(rememberScrollState())
                 ) {
-
-                    // Logo y Título
                     Image(
                         painter = painterResource(id = R.drawable.semilla_digital_iconn),
-                        contentDescription = "Logo",
+                        contentDescription = null,
                         modifier = Modifier.size(300.dp)
                     )
 
@@ -106,7 +103,6 @@ fun LoginScreen(
 
                     Spacer(modifier = Modifier.height(8.dp))
 
-                    // Campo Email
                     OutlinedTextField(
                         value = state.email,
                         onValueChange = { viewModel.onEvent(LoginEvent.OnEmailChanged(it)) },
@@ -124,7 +120,6 @@ fun LoginScreen(
                         shape = MaterialTheme.shapes.medium
                     )
 
-                    // Campo Password
                     OutlinedTextField(
                         value = state.contrasena,
                         onValueChange = { viewModel.onEvent(LoginEvent.OnPasswordChanged(it)) },
@@ -136,7 +131,7 @@ fun LoginScreen(
                             else Icons.Filled.VisibilityOff
 
                             IconButton(onClick = { passwordVisible = !passwordVisible }) {
-                                Icon(imageVector = image, contentDescription = "Toggle Password")
+                                Icon(imageVector = image, contentDescription = null)
                             }
                         },
                         visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
@@ -155,7 +150,6 @@ fun LoginScreen(
                         shape = MaterialTheme.shapes.medium
                     )
 
-                    // Mensaje de Error
                     if (state.error != null) {
                         Surface(
                             color = MaterialTheme.colorScheme.errorContainer,
@@ -172,7 +166,6 @@ fun LoginScreen(
 
                     Spacer(modifier = Modifier.height(8.dp))
 
-                    // Botón Login
                     Button(
                         onClick = {
                             keyboardController?.hide()
@@ -195,7 +188,6 @@ fun LoginScreen(
                         }
                     }
 
-                    // Botón Registro
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.Center
