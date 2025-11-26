@@ -27,6 +27,7 @@ import com.semilladigital.auth.ui.register.RegisterScreen
 import com.semilladigital.chatbot.presentation.ChatScreen
 import com.semilladigital.forum.ui.ForumScreen
 import com.semilladigital.geomap.ui.GeomapScreen
+import com.semilladigital.supports.presentation.ApoyosScreen
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -38,6 +39,7 @@ object Routes {
     const val REGISTER = "register"
     const val DASHBOARD = "dashboard"
     const val COURSES = "courses"
+    const val SUPPORTS = "supports"
     const val CHATBOT = "chatbot"
     const val FORUM = "forum"
     const val GEOMAP = "geomap"
@@ -76,7 +78,8 @@ fun AppNavigation() {
         Routes.DASHBOARD,
         Routes.COURSES,
         Routes.FORUM,
-        Routes.GEOMAP
+        Routes.GEOMAP,
+        Routes.SUPPORTS
     )
 
     Scaffold(
@@ -92,7 +95,6 @@ fun AppNavigation() {
             }
         }
     ) { paddingValues ->
-        // Aquí se omite .padding(paddingValues) para evitar el doble padding.
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -127,7 +129,7 @@ fun AppNavigation() {
                 composable(Routes.DASHBOARD) {
                     DashboardScreen(
                         onNavigateToCourses = { navController.navigate(Routes.COURSES) },
-                        onNavigateToSupports = { },
+                        onNavigateToSupports = { navController.navigate(Routes.SUPPORTS) },
                         onNavigateToChatbot = { navController.navigate(Routes.CHATBOT) },
                         onNavigateToGeomap = { navController.navigate(Routes.GEOMAP) },
                         onNavigateToForum = { navController.navigate(Routes.FORUM) },
@@ -142,6 +144,12 @@ fun AppNavigation() {
                 composable(Routes.COURSES) {
                     CourseScreen(
                         onNavigateBack = { navController.popBackStack() }
+                    )
+                }
+
+                composable(Routes.SUPPORTS) {
+                    ApoyosScreen(
+                        onBack = { navController.popBackStack() }
                     )
                 }
 

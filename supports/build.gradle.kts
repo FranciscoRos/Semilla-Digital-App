@@ -2,11 +2,16 @@ plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.kapt)
+    alias(libs.plugins.compose.compiler)
 }
 
 android {
     namespace = "com.semilladigital.supports"
     compileSdk = 36
+
+    buildFeatures {
+        compose = true
+    }
 
     defaultConfig {
         minSdk = 23
@@ -27,6 +32,7 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
+        isCoreLibraryDesugaringEnabled = true
     }
     kotlinOptions {
         jvmTarget = "11"
@@ -35,7 +41,6 @@ android {
 
 dependencies {
 
-    //Para acceder a los objetos de ui
     implementation(project(":core-ui"))
     implementation(project(":core-data"))
 
@@ -46,7 +51,26 @@ dependencies {
     androidTestImplementation(libs.androidx.test.ext.junit)
     androidTestImplementation(libs.androidx.espresso.core)
 
-    // Hilt para inyección de dependencias
     implementation(libs.hilt.android)
     kapt(libs.hilt.compiler)
+
+    implementation(project(":core-data"))
+    implementation(project(":core-ui"))
+
+    implementation(libs.retrofit.converter.gson)
+    implementation(libs.retrofit.core)
+
+    implementation(libs.androidx.hilt.navigation.compose)
+    implementation(libs.androidx.lifecycle.viewmodel.compose)
+    implementation(libs.androidx.lifecycle.runtime.compose)
+
+    val composeBom = platform(libs.androidx.compose.bom)
+    implementation(composeBom)
+    implementation(libs.androidx.compose.ui)
+    implementation(libs.androidx.compose.ui.tooling.preview)
+    implementation(libs.androidx.compose.material3)
+
+    implementation(libs.androidx.compose.material.icons.extended)
+
+    coreLibraryDesugaring(libs.android.desugar.jdk.libs)
 }
