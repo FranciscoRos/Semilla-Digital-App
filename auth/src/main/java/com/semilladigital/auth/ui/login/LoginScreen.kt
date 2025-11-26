@@ -86,9 +86,9 @@ fun LoginScreen(
 
                     // Logo y Título
                     Image(
-                        painter = painterResource(id = R.drawable.semilla_digital_logo_round),
+                        painter = painterResource(id = R.drawable.ic_launcher_round),
                         contentDescription = "Logo",
-                        modifier = Modifier.size(180.dp)
+                        modifier = Modifier.size(300.dp)
                     )
 
                     Text(

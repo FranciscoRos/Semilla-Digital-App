@@ -222,9 +222,7 @@ class RegisterViewModel @Inject constructor(
                     )
                 )
 
-                // Agregar campos dinámicos a la raíz del JSON
-                // NOTA: Aquí enviamos los values crudos a la raíz como "CamposExtra" si el backend los pide así,
-                // pero ya inyectamos los bonitos dentro de Usuario.Parcela.usos
+
                 payload.putAll(s.dynamicAnswers)
 
                 val result = repository.register(payload)
