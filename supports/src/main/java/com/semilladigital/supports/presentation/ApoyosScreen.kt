@@ -1,5 +1,6 @@
 package com.semilladigital.supports.presentation
 
+import android.app.Activity
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -15,10 +16,13 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
+import androidx.core.view.WindowCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.semilladigital.supports.domain.model.Apoyo
@@ -33,6 +37,21 @@ fun ApoyosScreen(
     chatViewModel: ChatViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+
+    // Configuración de la barra de estado para iconos oscuros
+    val view = LocalView.current
+    if (!view.isInEditMode) {
+        SideEffect {
+            val window = (view.context as Activity).window
+            // Hacemos la barra de estado transparente o blanca según prefieras
+            // Aquí la pongo transparente para que tome el color del TopAppBar/Scaffold
+            window.statusBarColor = Color.Transparent.toArgb()
+
+            // true = iconos oscuros (para fondo claro)
+            // false = iconos claros (para fondo oscuro)
+            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = true
+        }
+    }
 
     val filteredApoyos = state.todosLosApoyos.filter {
         it.nombre_programa.contains(state.searchQuery, ignoreCase = true) ||
@@ -75,9 +94,16 @@ fun ApoyosScreen(
                     IconButton(onClick = onBack) {
                         Icon(Icons.Default.ArrowBack, contentDescription = null)
                     }
-                }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = Color.White, // Aseguramos fondo blanco para la barra
+                    titleContentColor = Color.Black,
+                    navigationIconContentColor = Color.Black,
+                    actionIconContentColor = Color.Black
+                )
             )
-        }
+        },
+        containerColor = Color(0xFFF5F6F8) // Color de fondo general
     ) { padding ->
         LazyColumn(
             modifier = Modifier
@@ -92,8 +118,15 @@ fun ApoyosScreen(
                     onValueChange = { viewModel.onSearchQueryChange(it) },
                     label = { Text("Buscar apoyos...") },
                     leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(12.dp)
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 8.dp), // Un poco de espacio arriba
+                    shape = RoundedCornerShape(12.dp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedContainerColor = Color.White,
+                        unfocusedContainerColor = Color.White,
+                        disabledContainerColor = Color.White,
+                    )
                 )
                 Spacer(Modifier.height(8.dp))
             }
@@ -150,7 +183,9 @@ fun ApoyosScreen(
 @Composable
 fun ApoyoCard(apoyo: Apoyo, isSuggested: Boolean, onClick: () -> Unit) {
     Card(
-        modifier = Modifier.clickable(onClick = onClick),
+        modifier = Modifier
+            .then(if (isSuggested) Modifier.width(280.dp) else Modifier.fillMaxWidth()) // CORRECCIÓN AQUÍ
+            .clickable(onClick = onClick),
         shape = RoundedCornerShape(16.dp),
         elevation = CardDefaults.cardElevation(4.dp),
         colors = CardDefaults.cardColors(containerColor = if (isSuggested) Color(0xFFE8F5E9) else Color.White)
@@ -195,7 +230,8 @@ fun ApoyoDetailsDialog(apoyo: Apoyo, onClose: () -> Unit) {
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(vertical = 32.dp),
-            shape = RoundedCornerShape(16.dp)
+            shape = RoundedCornerShape(16.dp),
+            colors = CardDefaults.cardColors(containerColor = Color.White)
         ) {
             LazyColumn(modifier = Modifier.padding(24.dp)) {
                 item {
@@ -273,20 +309,20 @@ fun DetailRow(label: String, value: String) {
             .padding(vertical = 4.dp),
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        Text(label, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Medium)
+        Text(label, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Medium, color = Color.Black)
         Text(value, style = MaterialTheme.typography.bodyMedium, color = Color.DarkGray, modifier = Modifier.weight(1f), textAlign = androidx.compose.ui.text.style.TextAlign.End)
     }
 }
 
 @Composable
 fun RequerimientoItem(req: Requerimiento) {
-    Row(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) {
-        Icon(Icons.Default.Info, contentDescription = null, modifier = Modifier.size(16.dp), tint = MaterialTheme.colorScheme.primary)
+    Row(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp), verticalAlignment = Alignment.Top) {
+        Icon(Icons.Default.Info, contentDescription = null, modifier = Modifier.size(16.dp).padding(top = 2.dp), tint = MaterialTheme.colorScheme.primary)
         Spacer(Modifier.width(8.dp))
         val text = when (req.type) {
             "regla_parcela" -> "Requiere parcelas con áreas: ${req.config?.areas?.joinToString(", ") ?: "N/A"}"
-            "regla_pregunta" -> "Requiere que la pregunta ${req.config ?: "N/A"}"
-            else -> req.nombre ?: req.Requisito ?: "Requisito sin clasificar: ${req.valor ?: ""}"
+            "regla_pregunta" -> "Requiere que la pregunta '${req.fieldName ?: "N/A"}' sea ${req.validation?.operator ?: ""} ${req.validation?.value ?: ""}"
+            else -> req.nombre?.let { "$it: ${req.valor}" } ?: req.Requisito ?: "Requisito sin clasificar"
         }
         Text(text, style = MaterialTheme.typography.bodySmall, color = Color.Black)
     }

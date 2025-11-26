@@ -6,7 +6,14 @@ data class Requerimiento(
     val Direccion: DireccionRequerimiento? = null,
     val Requisito: String? = null,
     val type: String? = null,
-    val config: ApoyoConfig? = null
+    val config: ApoyoConfig? = null,
+    val fieldName: String? = null, // <--- Agregado
+    val validation: RequerimientoValidation? = null // <--- Agregado
+)
+
+data class RequerimientoValidation(
+    val operator: String? = null,
+    val value: String? = null
 )
 
 data class DireccionRequerimiento(
