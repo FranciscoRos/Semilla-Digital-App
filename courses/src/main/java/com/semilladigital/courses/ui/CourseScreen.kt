@@ -23,7 +23,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp // <--- IMPORTANTE: Agregado para arreglar el error
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.semilladigital.app.core.ui.SemillaDigitalTheme
@@ -101,7 +101,6 @@ private fun CourseContent(
     onEvent: (CourseEvent) -> Unit
 ) {
     val titleColor = Color(0xFF07490A)
-    val titleColor2 = MaterialTheme.colorScheme.secondary
 
     Box(modifier = modifier.fillMaxSize().background(Color(0xFFF5F6F8))) {
         if (state.isLoading) {
@@ -219,43 +218,51 @@ private fun CourseCard(
 ) {
     Card(
         modifier = Modifier
-            .then(if (isSuggested) Modifier.width(280.dp) else Modifier.fillMaxWidth())
+            .then(if (isSuggested) Modifier.width(280.dp).height(200.dp) else Modifier.fillMaxWidth())
             .clickable(onClick = onDetailsClick),
         shape = RoundedCornerShape(12.dp),
         elevation = CardDefaults.cardElevation(3.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White),
         border = BorderStroke(1.dp, Color(0xFFE0E0E0))
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Text(
-                text = course.titulo,
-                style = MaterialTheme.typography.titleMedium.copy(
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 16.sp
-                ),
-                color = Color.Black,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis
-            )
+        Column(
+            modifier = Modifier
+                .padding(16.dp)
+                .then(if (isSuggested) Modifier.fillMaxSize() else Modifier.wrapContentHeight())
+        ) {
+            Column(
+                modifier = if (isSuggested) Modifier.weight(1f) else Modifier
+            ) {
+                Text(
+                    text = course.titulo,
+                    style = MaterialTheme.typography.titleMedium.copy(
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 16.sp
+                    ),
+                    color = Color.Black,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
+                )
 
-            Spacer(Modifier.height(4.dp))
+                Spacer(Modifier.height(4.dp))
 
-            val subTitle = if (course.tema != null) "${course.modalidad} • ${course.tema}" else course.modalidad
-            Text(
-                text = subTitle,
-                style = MaterialTheme.typography.bodySmall,
-                color = Color.Gray
-            )
+                val subTitle = if (course.tema != null) "${course.modalidad} • ${course.tema}" else course.modalidad
+                Text(
+                    text = subTitle,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = Color.Gray
+                )
 
-            Spacer(Modifier.height(12.dp))
+                Spacer(Modifier.height(12.dp))
 
-            Text(
-                text = course.descripcion,
-                style = MaterialTheme.typography.bodyMedium,
-                color = Color(0xFF424242),
-                maxLines = 3,
-                overflow = TextOverflow.Ellipsis
-            )
+                Text(
+                    text = course.descripcion,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Color(0xFF424242),
+                    maxLines = 3,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
 
             Spacer(Modifier.height(16.dp))
 
