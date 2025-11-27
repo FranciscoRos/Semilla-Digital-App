@@ -51,9 +51,7 @@ fun DashboardScreen(
     LaunchedEffect(state.userName, state.userStatus) {
         if (state.userName != "Cargando...") {
             chatViewModel.setContext(
-                "El usuario está en el Dashboard (Pantalla Principal). " +
-                        "Datos del usuario -> Nombre: ${state.userName}, Estatus: ${state.userStatus}. " +
-                        "Opciones disponibles en pantalla: Solicitar Apoyos, Asistente Virtual, Cursos y Capacitación, Geomapa de Recursos, Foro Comunitario."
+                "El usuario está en el Dashboard. Datos: ${state.userName}, Estatus: ${state.userStatus}."
             )
         }
     }
@@ -158,7 +156,7 @@ fun DashboardScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = "Novedades del Sector",
+                        text = "Novedades para Ti",
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold,
                         color = Color.Black
@@ -170,17 +168,17 @@ fun DashboardScreen(
                     )
                 }
 
-                NewsCard(
-                    title = "Convocatoria Abierta 2025",
-                    subtitle = "Consulta las bases para el apoyo agrícola.",
-                    date = "Hace 2 horas"
-                )
-
-                NewsCard(
-                    title = "Reporte Climático Semanal",
-                    subtitle = "Se prevén lluvias en la zona norte.",
-                    date = "Ayer"
-                )
+                if (state.novedades.isEmpty()) {
+                    Text(
+                        text = "No hay novedades por ahora.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = Color.Gray
+                    )
+                } else {
+                    state.novedades.forEach { novedad ->
+                        NewsCard(item = novedad)
+                    }
+                }
 
                 Spacer(modifier = Modifier.height(24.dp))
             }
@@ -327,7 +325,10 @@ fun ServiceCard(
 }
 
 @Composable
-fun NewsCard(title: String, subtitle: String, date: String) {
+fun NewsCard(item: NovedadUiItem) {
+    val icon = if (item.tipo == TipoNovedad.CURSO) Icons.Default.School else Icons.Default.Assignment
+    val colorIcon = if (item.tipo == TipoNovedad.CURSO) Color(0xFFFF8A65) else Color(0xFF81C784)
+
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(20.dp),
@@ -342,14 +343,14 @@ fun NewsCard(title: String, subtitle: String, date: String) {
         ) {
             Surface(
                 shape = RoundedCornerShape(16.dp),
-                color = Color(0xFFF3F4F6),
+                color = colorIcon.copy(alpha = 0.1f),
                 modifier = Modifier.size(56.dp)
             ) {
                 Icon(
-                    imageVector = Icons.Default.Article,
+                    imageVector = icon,
                     contentDescription = null,
                     modifier = Modifier.padding(14.dp),
-                    tint = Color.Gray
+                    tint = colorIcon
                 )
             }
 
@@ -357,13 +358,13 @@ fun NewsCard(title: String, subtitle: String, date: String) {
 
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = title,
+                    text = item.titulo,
                     style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.Bold,
                     color = Color.Black
                 )
                 Text(
-                    text = subtitle,
+                    text = item.descripcion,
                     style = MaterialTheme.typography.bodySmall,
                     color = Color.Gray,
                     maxLines = 1,
@@ -372,7 +373,7 @@ fun NewsCard(title: String, subtitle: String, date: String) {
             }
 
             Text(
-                text = date,
+                text = item.fecha.take(10),
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.primary,
                 fontWeight = FontWeight.Bold

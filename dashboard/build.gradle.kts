@@ -62,6 +62,9 @@ dependencies {
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.androidx.lifecycle.runtime.compose)
 
+
+    implementation(libs.retrofit.converter.gson)
+    implementation(libs.retrofit.core)
     // Librerías de Compose
     val composeBom = platform(libs.androidx.compose.bom)
     implementation(composeBom)

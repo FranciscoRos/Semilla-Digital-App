@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.semilladigital.auth.domain.repository.AuthRepository
 import com.semilladigital.app.core.data.storage.SessionStorage
+import com.semilladigital.dashboard.domain.repository.DashboardRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -11,70 +12,103 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+data class NovedadUiItem(
+    val id: String,
+    val titulo: String,
+    val descripcion: String,
+    val fecha: String,
+    val tipo: TipoNovedad
+)
+
+enum class TipoNovedad {
+    CURSO, APOYO
+}
+
 data class DashboardState(
     val userName: String = "Cargando...",
     val userStatus: String = "",
     val isLoading: Boolean = false,
     val error: String? = null,
-    val isLoggedOut: Boolean = false // <--- Nueva bandera
+    val isLoggedOut: Boolean = false,
+    val novedades: List<NovedadUiItem> = emptyList()
 )
 
 @HiltViewModel
 class DashboardViewModel @Inject constructor(
     private val authRepository: AuthRepository,
-    private val sessionStorage: SessionStorage
+    private val sessionStorage: SessionStorage,
+    private val dashboardRepository: DashboardRepository
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(DashboardState())
     val state = _state.asStateFlow()
 
     init {
-        loadUserProfile()
+        loadData()
     }
 
-    private fun loadUserProfile() {
+    private fun loadData() {
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true) }
 
             val token = sessionStorage.getToken()
 
             if (token != null) {
-                val result = authRepository.getUserProfile(token)
-
-                result.fold(
-                    onSuccess = { user ->
-                        _state.update {
-                            it.copy(
-                                isLoading = false,
-                                userName = user.nombre,
-                                userStatus = user.estatus
-                            )
-                        }
-                    },
-                    onFailure = { e ->
-                        _state.update { it.copy(isLoading = false, userName = "Usuario", error = e.message) }
-                    }
-                )
+                launch { loadUserProfile(token) }
+                launch { loadNovedades() }
             } else {
                 _state.update { it.copy(isLoading = false, error = "No hay sesión") }
             }
         }
     }
 
+    private suspend fun loadUserProfile(token: String) {
+        val result = authRepository.getUserProfile(token)
+        result.fold(
+            onSuccess = { user ->
+                _state.update {
+                    it.copy(
+                        isLoading = false,
+                        userName = user.nombre,
+                        userStatus = user.estatus
+                    )
+                }
+            },
+            onFailure = { e ->
+                _state.update { it.copy(isLoading = false, userName = "Usuario", error = e.message) }
+            }
+        )
+    }
+
+    private suspend fun loadNovedades() {
+        val result = dashboardRepository.getNovedades()
+        result.fold(
+            onSuccess = { response ->
+                val cursosItems = response.cursos.map {
+                    NovedadUiItem(it.id, it.Titulo, it.Descripcion, it.Creado, TipoNovedad.CURSO)
+                }
+                val apoyosItems = response.apoyos.map {
+                    NovedadUiItem(it.id, it.nombre_programa, it.descripcion, it.Creado, TipoNovedad.APOYO)
+                }
+
+                val combined = (cursosItems + apoyosItems).sortedByDescending { it.fecha }
+
+                _state.update { it.copy(novedades = combined) }
+            },
+            onFailure = {
+
+            }
+        )
+    }
+
     fun onLogout() {
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true) }
-
-
             val token = sessionStorage.getToken()
             if (!token.isNullOrEmpty()) {
                 authRepository.logout(token)
             }
-
-            //  Borrar sesión local
             sessionStorage.clearSession()
-
-            // Avisar a la UI que ya terminamos para que navegue
             _state.update { it.copy(isLoading = false, isLoggedOut = true) }
         }
     }
