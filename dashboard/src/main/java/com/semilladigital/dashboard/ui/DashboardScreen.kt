@@ -3,6 +3,8 @@ package com.semilladigital.dashboard.ui
 import android.app.Activity
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -21,6 +23,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.view.WindowCompat
@@ -156,7 +159,7 @@ fun DashboardScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = "Novedades para Ti",
+                        text = "Novedades para ti",
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold,
                         color = Color.Black
@@ -175,17 +178,25 @@ fun DashboardScreen(
                         color = Color.Gray
                     )
                 } else {
-                    state.novedades.forEach { novedad ->
-                        NewsCard(
-                            item = novedad,
-                            onClick = {
-                                if (novedad.tipo == TipoNovedad.CURSO) {
-                                    onNavigateToCourses(novedad.id)
-                                } else {
-                                    onNavigateToSupports(novedad.id)
-                                }
-                            }
-                        )
+                    LazyRow(
+                        horizontalArrangement = Arrangement.spacedBy(16.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        items(state.novedades) { novedad ->
+                            NewsCard(
+                                item = novedad,
+                                onClick = {
+                                    if (novedad.tipo == TipoNovedad.CURSO) {
+                                        onNavigateToCourses(novedad.id)
+                                    } else {
+                                        onNavigateToSupports(novedad.id)
+                                    }
+                                },
+                                modifier = Modifier
+                                    .width(320.dp)
+                                    .height(115.dp)
+                            )
+                        }
                     }
                 }
 
@@ -335,13 +346,17 @@ fun ServiceCard(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun NewsCard(item: NovedadUiItem, onClick: () -> Unit) {
+fun NewsCard(
+    item: NovedadUiItem,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
     val icon = if (item.tipo == TipoNovedad.CURSO) Icons.Default.School else Icons.Default.Assignment
     val colorIcon = if (item.tipo == TipoNovedad.CURSO) Color(0xFFFF8A65) else Color(0xFF81C784)
 
     Card(
         onClick = onClick,
-        modifier = Modifier.fillMaxWidth(),
+        modifier = modifier,
         shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
@@ -349,7 +364,8 @@ fun NewsCard(item: NovedadUiItem, onClick: () -> Unit) {
         Row(
             modifier = Modifier
                 .padding(16.dp)
-                .fillMaxWidth(),
+                .fillMaxWidth()
+                .fillMaxHeight(),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Surface(
@@ -372,14 +388,17 @@ fun NewsCard(item: NovedadUiItem, onClick: () -> Unit) {
                     text = item.titulo,
                     style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.Bold,
-                    color = Color.Black
+                    color = Color.Black,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
                 )
                 Text(
                     text = item.descripcion,
                     style = MaterialTheme.typography.bodySmall,
                     color = Color.Gray,
                     maxLines = 1,
-                    modifier = Modifier.padding(top = 2.dp)
+                    modifier = Modifier.padding(top = 2.dp),
+                    overflow = TextOverflow.Ellipsis
                 )
             }
 

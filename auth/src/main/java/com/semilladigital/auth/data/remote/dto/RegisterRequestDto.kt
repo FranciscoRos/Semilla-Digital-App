@@ -49,7 +49,7 @@ data class UsuarioRegistroDataDto(
 
 data class ParcelaRegistroDto(
     @SerializedName("nombre")
-    val nombre: String = "Parcela Principal",
+    val nombre: String = "Parcela Anónima",
 
     // Coordenadas: Lista de [lat, lng]
     // El controlador espera: 'Coordenadas' => $parcela['coordenadas']
