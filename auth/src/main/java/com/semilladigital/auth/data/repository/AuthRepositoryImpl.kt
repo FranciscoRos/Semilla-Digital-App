@@ -25,8 +25,8 @@ class AuthRepositoryImpl @Inject constructor(
 
             val safeRole = userDto.rol?.firstOrNull()?.nombreRol ?: "Productor"
             val apellidos = "${userDto.apellido1 ?: ""} ${userDto.apellido2 ?: ""}".trim()
+            val safeIdRegistro = userDto.idRegistro ?: ""
 
-            // --- DUMMY DATA ---
             val actividadesDummy = getDummyActividades()
 
             sessionStorage.saveSession(
@@ -37,7 +37,8 @@ class AuthRepositoryImpl @Inject constructor(
                 email = userDto.correo ?: "",
                 rol = safeRole,
                 estatus = userDto.estatus ?: "Activo",
-                actividades = actividadesDummy
+                actividades = actividadesDummy,
+                idRegistro = safeIdRegistro
             )
 
             val authResult = AuthResult(
@@ -61,13 +62,12 @@ class AuthRepositoryImpl @Inject constructor(
 
     override suspend fun getUserProfile(token: String): Result<User> {
         return try {
-            val bearerToken = "Bearer $token"
             val userDto = apiService.getMe()
 
             val apellidos = "${userDto.apellido1 ?: ""} ${userDto.apellido2 ?: ""}".trim()
             val safeRole = userDto.rol?.firstOrNull()?.nombreRol ?: "Usuario"
+            val safeIdRegistro = userDto.idRegistro ?: ""
 
-            // --- DUMMY DATA ---
             val actividadesDummy = getDummyActividades()
 
             sessionStorage.saveSession(
@@ -78,7 +78,8 @@ class AuthRepositoryImpl @Inject constructor(
                 email = userDto.correo ?: "",
                 rol = safeRole,
                 estatus = userDto.estatus ?: "Activo",
-                actividades = actividadesDummy
+                actividades = actividadesDummy,
+                idRegistro = safeIdRegistro
             )
 
             Result.success(userDto.toUser())

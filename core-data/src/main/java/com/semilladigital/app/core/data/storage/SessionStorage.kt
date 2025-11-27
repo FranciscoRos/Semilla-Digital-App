@@ -20,9 +20,9 @@ class SessionStorage @Inject constructor(
         private const val KEY_ROL = "user_rol"
         private const val KEY_ESTATUS = "user_estatus"
         private const val KEY_ACTIVIDADES = "user_actividades"
+        private const val KEY_ID_REGISTRO = "user_id_registro"
     }
 
-    // --- FLOWS ---
     private val _authTokenFlow = MutableStateFlow(sharedPreferences.getString(KEY_TOKEN, null))
     val authTokenFlow = _authTokenFlow.asStateFlow()
 
@@ -32,7 +32,6 @@ class SessionStorage @Inject constructor(
     private val _userRolFlow = MutableStateFlow(sharedPreferences.getString(KEY_ROL, null))
     val userRolFlow = _userRolFlow.asStateFlow()
 
-    // --- GUARDAR SESIÓN ---
     fun saveSession(
         token: String,
         id: String,
@@ -41,9 +40,9 @@ class SessionStorage @Inject constructor(
         email: String,
         rol: String,
         estatus: String,
-        actividades: List<String>
+        actividades: List<String>,
+        idRegistro: String
     ) {
-        //Convertimos la lista a un String separado por comas (ej: "maíz,frijol")
         val actividadesString = actividades.joinToString(",")
         sharedPreferences.edit()
             .putString(KEY_TOKEN, token)
@@ -54,15 +53,14 @@ class SessionStorage @Inject constructor(
             .putString(KEY_ROL, rol)
             .putString(KEY_ESTATUS, estatus)
             .putString(KEY_ACTIVIDADES, actividadesString)
+            .putString(KEY_ID_REGISTRO, idRegistro)
             .apply()
 
-        // Actualizar memoria
         _authTokenFlow.value = token
         _userNameFlow.value = nombre
         _userRolFlow.value = rol
     }
 
-    // --- OBTENER DATOS ---
     fun getToken() = sharedPreferences.getString(KEY_TOKEN, null)
     fun getUserId() = sharedPreferences.getString(KEY_USER_ID, "")
     fun getNombre() = sharedPreferences.getString(KEY_NOMBRE, "")
@@ -71,14 +69,14 @@ class SessionStorage @Inject constructor(
     fun getEmail() = sharedPreferences.getString(KEY_EMAIL, "")
     fun getRol() = sharedPreferences.getString(KEY_ROL, "")
     fun getEstatus() = sharedPreferences.getString(KEY_ESTATUS, "")
+    fun getIdRegistro() = sharedPreferences.getString(KEY_ID_REGISTRO, "")
 
-    // Recuperamos como Lista real
     fun getActividades(): List<String> {
         val savedString = sharedPreferences.getString(KEY_ACTIVIDADES, "") ?: ""
         if (savedString.isBlank()) return emptyList()
         return savedString.split(",").map { it.trim() }
     }
-    // --- CERRAR SESIÓN ---
+
     fun clearSession() {
         sharedPreferences.edit().clear().apply()
         _authTokenFlow.value = null

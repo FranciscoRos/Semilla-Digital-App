@@ -27,6 +27,8 @@ data class UserDto(
     @SerializedName("Actividades")
     val actividades: List<String>?,
 
+    @SerializedName("idRegistro")
+    val idRegistro: String?
 )
 
 data class RolDto(
