@@ -30,8 +30,8 @@ import com.semilladigital.chatbot.presentation.ChatViewModel
 
 @Composable
 fun DashboardScreen(
-    onNavigateToCourses: () -> Unit,
-    onNavigateToSupports: () -> Unit,
+    onNavigateToCourses: (String?) -> Unit,
+    onNavigateToSupports: (String?) -> Unit,
     onNavigateToChatbot: () -> Unit,
     onNavigateToGeomap: () -> Unit,
     onNavigateToForum: () -> Unit,
@@ -102,7 +102,7 @@ fun DashboardScreen(
                         title = "Solicitar\nApoyos",
                         icon = Icons.Default.Assignment,
                         color = Color(0xFF81C784),
-                        onClick = onNavigateToSupports,
+                        onClick = { onNavigateToSupports(null) },
                         modifier = Modifier.weight(1f)
                     )
                     ServiceCard(
@@ -122,7 +122,7 @@ fun DashboardScreen(
                         title = "Cursos y\nCapacitación",
                         icon = Icons.Default.School,
                         color = Color(0xFFFF8A65),
-                        onClick = onNavigateToCourses,
+                        onClick = { onNavigateToCourses(null) },
                         modifier = Modifier.weight(1f)
                     )
                     ServiceCard(
@@ -176,7 +176,16 @@ fun DashboardScreen(
                     )
                 } else {
                     state.novedades.forEach { novedad ->
-                        NewsCard(item = novedad)
+                        NewsCard(
+                            item = novedad,
+                            onClick = {
+                                if (novedad.tipo == TipoNovedad.CURSO) {
+                                    onNavigateToCourses(novedad.id)
+                                } else {
+                                    onNavigateToSupports(novedad.id)
+                                }
+                            }
+                        )
                     }
                 }
 
@@ -324,12 +333,14 @@ fun ServiceCard(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun NewsCard(item: NovedadUiItem) {
+fun NewsCard(item: NovedadUiItem, onClick: () -> Unit) {
     val icon = if (item.tipo == TipoNovedad.CURSO) Icons.Default.School else Icons.Default.Assignment
     val colorIcon = if (item.tipo == TipoNovedad.CURSO) Color(0xFFFF8A65) else Color(0xFF81C784)
 
     Card(
+        onClick = onClick,
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White),

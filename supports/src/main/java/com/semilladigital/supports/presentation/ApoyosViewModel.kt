@@ -1,6 +1,7 @@
 package com.semilladigital.supports.presentation
 
 import android.util.Log
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.semilladigital.app.core.data.storage.SessionStorage
@@ -15,7 +16,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import java.util.concurrent.CancellationException
 import javax.inject.Inject
 
 data class ApoyosState(
@@ -33,7 +33,8 @@ data class ApoyosState(
 @HiltViewModel
 class ApoyosViewModel @Inject constructor(
     private val repository: ApoyosRepository,
-    private val sessionStorage: SessionStorage
+    private val sessionStorage: SessionStorage,
+    private val savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(ApoyosState())
@@ -47,16 +48,12 @@ class ApoyosViewModel @Inject constructor(
         loadData()
     }
 
-// ... imports ...
-
-// DENTRO DE ApoyosViewModel
-
     private fun loadData() {
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true, error = null) }
 
             val idUsuarioSesion = sessionStorage.getUserId()
-            Log.d("DEBUG_SEMILLA", "1. ID Usuario en Sesión: '$idUsuarioSesion'")
+            Log.d("DEBUG_SEMILLA", "ID Usuario en Sesión: '$idUsuarioSesion'")
 
             if (idUsuarioSesion.isNullOrBlank()) {
                 _state.update { it.copy(isLoading = false, error = "No hay usuario en sesión.") }
@@ -64,30 +61,12 @@ class ApoyosViewModel @Inject constructor(
             }
 
             try {
-                // 1. Cargar Apoyos
                 val resultApoyos = repository.getAllApoyos()
-
-                // 2. Cargar Registros
-                // Nota: Usamos getTodosLosRegistros directamente en el repo o la lógica de filtrado
-                // Como tu repo usa 'getRegistroPorUsuario', vamos a ver qué hace.
                 val resultRegistro = repository.getRegistroPorUsuario(idUsuarioSesion)
 
                 if (resultApoyos.isSuccess) {
                     val apoyos = resultApoyos.getOrDefault(emptyList())
                     val registro = resultRegistro.getOrNull()
-
-                    Log.d("DEBUG_SEMILLA", "2. Apoyos cargados: ${apoyos.size}")
-
-                    if (registro != null) {
-                        Log.d("DEBUG_SEMILLA", "3. ¡Registro encontrado! ID Registro: ${registro.id}")
-                        Log.d("DEBUG_SEMILLA", "4. Parcelas en registro: ${registro.Usuario.Parcela.size}")
-                        if (registro.Usuario.Parcela.isNotEmpty()) {
-                            Log.d("DEBUG_SEMILLA", "   -> Primera Parcela ID: ${registro.Usuario.Parcela[0].idParcela}")
-                        }
-                    } else {
-                        Log.e("DEBUG_SEMILLA", "3. ERROR: No se encontró registro para el usuario '$idUsuarioSesion'")
-                        // Aquí está el problema potencial: Si falla, el botón no tendrá ID de parcela
-                    }
 
                     val itemsProcesados = if (registro != null) {
                         apoyos.map { determinarEstatus(apoyo = it, registro = registro) }
@@ -95,11 +74,24 @@ class ApoyosViewModel @Inject constructor(
                         apoyos.map { ApoyoUiItem(it, EstatusApoyo.DISPONIBLE) }
                     }
 
+                    val targetId = savedStateHandle.get<String>("id")
+                    var itemToSelect: ApoyoUiItem? = null
+                    var showDialog = false
+
+                    if (!targetId.isNullOrEmpty()) {
+                        itemToSelect = itemsProcesados.find { it.apoyo.id == targetId }
+                        if (itemToSelect != null) {
+                            showDialog = true
+                        }
+                    }
+
                     _state.update {
                         it.copy(
                             listadoApoyos = itemsProcesados,
                             registroUsuario = registro,
-                            isLoading = false
+                            isLoading = false,
+                            selectedApoyoItem = itemToSelect,
+                            showDetailsDialog = showDialog
                         )
                     }
                 } else {
@@ -113,21 +105,14 @@ class ApoyosViewModel @Inject constructor(
     }
 
     fun inscribirseEnApoyo(apoyo: Apoyo) {
-        Log.d("DEBUG_SEMILLA", ">>> Click en Inscribirse a: ${apoyo.nombre_programa}")
-
         val registro = _state.value.registroUsuario
-
         if (registro == null) {
-            Log.e("DEBUG_SEMILLA", "ERROR BLOQUEANTE: registroUsuario es NULL. No se puede obtener parcela.")
             _state.update { it.copy(error = "No se encontraron datos de tu registro. Recarga la pantalla.") }
             return
         }
 
         val idParcela = registro.Usuario.Parcela.firstOrNull()?.idParcela
-        Log.d("DEBUG_SEMILLA", "ID Parcela detectado: $idParcela")
-
         if (idParcela == null) {
-            Log.e("DEBUG_SEMILLA", "ERROR BLOQUEANTE: El usuario tiene registro pero NO tiene parcelas.")
             _state.update { it.copy(error = "No tienes parcelas registradas.") }
             return
         }
@@ -135,28 +120,24 @@ class ApoyosViewModel @Inject constructor(
         viewModelScope.launch {
             _state.update { it.copy(isInscribiendo = true, error = null) }
             try {
-                Log.d("DEBUG_SEMILLA", "Enviando POST... Apoyo: ${apoyo.id}, Parcela: $idParcela")
                 val result = repository.inscribirse(idApoyo = apoyo.id, idParcela = idParcela)
-
                 result.fold(
                     onSuccess = {
-                        Log.d("DEBUG_SEMILLA", "¡Éxito! ${it.message}")
                         _state.update { s ->
                             s.copy(isInscribiendo = false, showDetailsDialog = false, mensajeExito = it.message)
                         }
                         loadData()
                     },
                     onFailure = {
-                        Log.e("DEBUG_SEMILLA", "Fallo POST: ${it.message}")
                         _state.update { s -> s.copy(isInscribiendo = false, error = it.message) }
                     }
                 )
             } catch (e: Exception) {
-                Log.e("DEBUG_SEMILLA", "Excepción POST: ${e.message}")
                 _state.update { s -> s.copy(isInscribiendo = false, error = e.message) }
             }
         }
     }
+
     fun limpiarMensajeExito() {
         _state.update { it.copy(mensajeExito = null) }
     }

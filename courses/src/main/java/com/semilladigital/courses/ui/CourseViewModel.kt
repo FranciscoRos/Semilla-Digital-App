@@ -1,6 +1,7 @@
 package com.semilladigital.courses.ui
 
 import android.util.Log
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.semilladigital.app.core.data.storage.SessionStorage
@@ -20,7 +21,8 @@ import javax.inject.Inject
 @HiltViewModel
 class CourseViewModel @Inject constructor(
     private val getCoursesUseCase: GetCoursesUseCase,
-    private val sessionStorage: SessionStorage
+    private val sessionStorage: SessionStorage,
+    private val savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(CourseState())
@@ -86,11 +88,9 @@ class CourseViewModel @Inject constructor(
 
             val dateMatch = when (currentState.selectedDateFilter) {
                 "Próximos" -> {
-
                     courseDates.isEmpty() || courseDates.any { it.isAfter(today) || it.isEqual(today) }
                 }
                 "Pasados" -> {
-
                     courseDates.isNotEmpty() && courseDates.all { it.isBefore(today) }
                 }
                 else -> true
@@ -107,7 +107,6 @@ class CourseViewModel @Inject constructor(
             val cleanDate = if (dateString.contains(" ")) dateString.split(" ")[0] else dateString
             LocalDate.parse(cleanDate, apiDateFormatter)
         } catch (e: DateTimeParseException) {
-
             try {
                 LocalDate.parse(dateString, DateTimeFormatter.ISO_DATE)
             } catch (e2: Exception) {
@@ -135,12 +134,20 @@ class CourseViewModel @Inject constructor(
                         }
                     }
 
+                    val targetId = savedStateHandle.get<String>("id")
+                    var selectedCourse: Course? = null
+
+                    if (!targetId.isNullOrEmpty()) {
+                        selectedCourse = courses.find { it.id == targetId }
+                    }
+
                     _state.update {
                         it.copy(
                             isLoading = false,
                             courses = courses,
                             recommendedCourses = recommended,
                             availableTemas = temas,
+                            selectedCourse = selectedCourse,
                             error = null
                         )
                     }

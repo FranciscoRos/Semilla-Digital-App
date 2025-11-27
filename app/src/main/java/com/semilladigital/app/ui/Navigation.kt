@@ -2,7 +2,6 @@ package com.semilladigital.app.ui
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.SmartToy
 import androidx.compose.material3.*
@@ -15,10 +14,12 @@ import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
 import androidx.navigation.NavController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.semilladigital.auth.ui.login.LoginScreen
 import com.semilladigital.app.core.data.storage.SessionStorage
 import com.semilladigital.dashboard.ui.DashboardScreen
@@ -38,8 +39,8 @@ object Routes {
     const val LOGIN = "login"
     const val REGISTER = "register"
     const val DASHBOARD = "dashboard"
-    const val COURSES = "courses"
-    const val SUPPORTS = "supports"
+    const val COURSES = "courses?id={id}"
+    const val SUPPORTS = "supports?id={id}"
     const val CHATBOT = "chatbot"
     const val FORUM = "forum"
     const val GEOMAP = "geomap"
@@ -76,15 +77,19 @@ fun AppNavigation() {
 
     val showBotButtonIn = listOf(
         Routes.DASHBOARD,
-        Routes.COURSES,
+        "courses",
+        "supports",
         Routes.FORUM,
-        Routes.GEOMAP,
-        Routes.SUPPORTS
+        Routes.GEOMAP
     )
+
+    val shouldShowBot = showBotButtonIn.any {
+        currentRoute?.startsWith(it.substringBefore("?")) == true
+    }
 
     Scaffold(
         floatingActionButton = {
-            if (currentRoute in showBotButtonIn) {
+            if (shouldShowBot) {
                 FloatingActionButton(
                     onClick = { navController.navigate(Routes.CHATBOT) },
                     containerColor = MaterialTheme.colorScheme.primary,
@@ -128,8 +133,14 @@ fun AppNavigation() {
 
                 composable(Routes.DASHBOARD) {
                     DashboardScreen(
-                        onNavigateToCourses = { navController.navigate(Routes.COURSES) },
-                        onNavigateToSupports = { navController.navigate(Routes.SUPPORTS) },
+                        onNavigateToCourses = { id ->
+                            val route = if (id != null) "courses?id=$id" else "courses"
+                            navController.navigate(route)
+                        },
+                        onNavigateToSupports = { id ->
+                            val route = if (id != null) "supports?id=$id" else "supports"
+                            navController.navigate(route)
+                        },
                         onNavigateToChatbot = { navController.navigate(Routes.CHATBOT) },
                         onNavigateToGeomap = { navController.navigate(Routes.GEOMAP) },
                         onNavigateToForum = { navController.navigate(Routes.FORUM) },
@@ -141,13 +152,19 @@ fun AppNavigation() {
                     )
                 }
 
-                composable(Routes.COURSES) {
+                composable(
+                    route = Routes.COURSES,
+                    arguments = listOf(navArgument("id") { type = NavType.StringType; nullable = true })
+                ) {
                     CourseScreen(
                         onNavigateBack = { navController.popBackStack() }
                     )
                 }
 
-                composable(Routes.SUPPORTS) {
+                composable(
+                    route = Routes.SUPPORTS,
+                    arguments = listOf(navArgument("id") { type = NavType.StringType; nullable = true })
+                ) {
                     ApoyosScreen(
                         onBack = { navController.popBackStack() }
                     )
