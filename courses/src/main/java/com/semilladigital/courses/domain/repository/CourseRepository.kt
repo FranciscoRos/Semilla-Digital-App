@@ -1,11 +1,10 @@
 package com.semilladigital.courses.domain.repository
 
-import com.semilladigital.courses.domain.model.Course // Crearemos este modelo en un segundo
+import com.semilladigital.courses.domain.model.Course
+import kotlinx.coroutines.flow.StateFlow
 
-// Esta es la interfaz que el ViewModel usará.
-// Define "qué" se puede hacer.
 interface CourseRepository {
-
-    // Usaremos un 'Result' para manejar éxito o error
-    suspend fun getCourses(): Result<List<Course>>
+    val courses: StateFlow<List<Course>>
+    suspend fun refreshCourses(): Result<Unit>
+    suspend fun getCourses(forceRefresh: Boolean): Result<List<Course>>
 }

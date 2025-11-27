@@ -4,47 +4,68 @@ import com.semilladigital.courses.data.remote.CourseApiService
 import com.semilladigital.courses.data.remote.dto.CourseDto
 import com.semilladigital.courses.domain.model.Course
 import com.semilladigital.courses.domain.repository.CourseRepository
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import javax.inject.Inject
+import javax.inject.Singleton
 
+@Singleton
 class CourseRepositoryImpl @Inject constructor(
     private val apiService: CourseApiService
 ) : CourseRepository {
 
-    override suspend fun getCourses(): Result<List<Course>> {
+    private val _courses = MutableStateFlow<List<Course>>(emptyList())
+    override val courses: StateFlow<List<Course>> = _courses.asStateFlow()
+
+    private var lastFetchTime: Long = 0
+    private val CACHE_TIMEOUT = 5 * 60 * 1000 // 5 minutos
+
+    override suspend fun refreshCourses(): Result<Unit> {
         return try {
-            // 1. Llama a la API (ahora devuelve el wrapper)
             val response = apiService.getCourses()
-
-            // 2. ACCEDEMOS AL OBJETO .DATA
-            val courseDtoList = response.data
-
-            // 3. Convierte el DTO al Modelo (como antes)
-            val courseList = courseDtoList.map { it.toCourse() }
-
-            // 4. Devuelve éxito
-            Result.success(courseList)
-
+            // Asegúrate que tu response.data sea la lista.
+            // Si usas DataWrapper, sería response.data.map { ... }
+            val domainCourses = response.data.map { it.toDomain() }
+            _courses.value = domainCourses
+            lastFetchTime = System.currentTimeMillis()
+            Result.success(Unit)
         } catch (e: Exception) {
-            // 5. Devuelve error
-            e.printStackTrace()
             Result.failure(e)
         }
     }
-}
 
-// La función de conversión
-private fun CourseDto.toCourse(): Course {
-    return Course(
-        id = this.id,
-        titulo = this.titulo,
-        descripcion = this.descripcion,
-        detalles = this.detalles, // <-- AÑADIDO
-        tema = this.tema, // <-- AÑADIDO
-        modalidad = this.modalidad,
-        fechaCurso = this.fechaCurso,
-        direccion = this.direccion,
-        url = this.url,
-        lat = this.lat,
-        longitud = this.longitud
-    )
+    override suspend fun getCourses(forceRefresh: Boolean): Result<List<Course>> {
+        val isCacheValid = (System.currentTimeMillis() - lastFetchTime) < CACHE_TIMEOUT
+
+        if (!forceRefresh && _courses.value.isNotEmpty() && isCacheValid) {
+            return Result.success(_courses.value)
+        }
+        return try {
+            refreshCourses()
+            Result.success(_courses.value)
+        } catch (e: Exception) {
+            if (_courses.value.isNotEmpty()) {
+                Result.success(_courses.value)
+            } else {
+                Result.failure(e)
+            }
+        }
+    }
+
+    private fun CourseDto.toDomain(): Course {
+        return Course(
+            id = id,
+            titulo = titulo,
+            descripcion = descripcion,
+            detalles = detalles,
+            tema = tema,
+            modalidad = modalidad,
+            fechaCurso = fechaCurso,
+            direccion = direccion,
+            lat = lat,
+            longitud = longitud,
+            url = url
+        )
+    }
 }

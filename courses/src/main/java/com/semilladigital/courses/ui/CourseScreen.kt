@@ -16,12 +16,11 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -41,8 +40,33 @@ fun CourseScreen(
     val state by viewModel.state.collectAsStateWithLifecycle()
     val context = LocalContext.current
 
-    LaunchedEffect(Unit) {
-        chatViewModel.setContext("El usuario está navegando en la lista general de Cursos y Capacitación.")
+    LaunchedEffect(state.courses) {
+        if (state.courses.isNotEmpty()) {
+            val listaCursosCompleta = state.courses.joinToString(separator = "\n\n") { curso ->
+                """
+                [CURSO]
+                ID: ${curso.id}
+                Título: ${curso.titulo}
+                Descripción: ${curso.descripcion}
+                Detalles Completos: ${curso.detalles ?: "Sin detalles adicionales"}
+                Tema: ${curso.tema ?: "General"}
+                Modalidad: ${curso.modalidad}
+                Fechas: ${curso.fechaCurso.joinToString(", ")}
+                Dirección: ${curso.direccion ?: "No especificada"}
+                Coordenadas: ${if(curso.lat != null) "${curso.lat}, ${curso.longitud}" else "N/A"}
+                URL: ${curso.url ?: "N/A"}
+                """.trimIndent()
+            }
+
+            chatViewModel.setContext(
+                "El usuario está navegando en la lista de Cursos.\n" +
+                        "A continuación se detallan TODOS los datos de los cursos disponibles en pantalla para que puedas responder cualquier duda específica sobre ellos:\n\n$listaCursosCompleta"
+            )
+        } else if (state.isLoading) {
+            chatViewModel.setContext("El usuario está esperando a que carguen los cursos...")
+        } else {
+            chatViewModel.setContext("El usuario está en la pantalla de Cursos, pero la lista está vacía.")
+        }
     }
 
     SemillaDigitalTheme {
@@ -62,7 +86,18 @@ fun CourseScreen(
             if (selectedCourse != null) {
                 LaunchedEffect(selectedCourse) {
                     chatViewModel.setContext(
-                        "El usuario está viendo los detalles del curso: '${selectedCourse.titulo}'."
+                        """
+                        El usuario está viendo los detalles específicos del siguiente curso:
+                        Título: ${selectedCourse.titulo}
+                        Descripción: ${selectedCourse.descripcion}
+                        Detalles: ${selectedCourse.detalles ?: "N/A"}
+                        Tema: ${selectedCourse.tema}
+                        Modalidad: ${selectedCourse.modalidad}
+                        Fechas: ${selectedCourse.fechaCurso.joinToString(", ")}
+                        Dirección: ${selectedCourse.direccion}
+                        Coordenadas: ${selectedCourse.lat}, ${selectedCourse.longitud}
+                        URL Web: ${selectedCourse.url}
+                        """.trimIndent()
                     )
                 }
 
@@ -70,7 +105,8 @@ fun CourseScreen(
                     course = selectedCourse,
                     onDismiss = {
                         viewModel.onEvent(CourseEvent.OnHideDetails)
-                        chatViewModel.setContext("El usuario regresó a la lista de Cursos.")
+                        val listaCursos = state.courses.joinToString(separator = ", ") { it.titulo }
+                        chatViewModel.setContext("El usuario regresó a la lista general. Cursos visibles: $listaCursos")
                     },
                     onGoToMap = { lat, lon ->
                         val gmmIntentUri = Uri.parse("geo:$lat,$lon?q=$lat,$lon")
@@ -216,10 +252,17 @@ private fun CourseCard(
     isSuggested: Boolean,
     onDetailsClick: () -> Unit
 ) {
+
+    val modifier = if (isSuggested) {
+        Modifier
+            .width(280.dp)
+            .height(200.dp)
+    } else {
+        Modifier.fillMaxWidth()
+    }
+
     Card(
-        modifier = Modifier
-            .then(if (isSuggested) Modifier.width(280.dp).height(200.dp) else Modifier.fillMaxWidth())
-            .clickable(onClick = onDetailsClick),
+        modifier = modifier.clickable(onClick = onDetailsClick),
         shape = RoundedCornerShape(12.dp),
         elevation = CardDefaults.cardElevation(3.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White),
@@ -228,11 +271,10 @@ private fun CourseCard(
         Column(
             modifier = Modifier
                 .padding(16.dp)
-                .then(if (isSuggested) Modifier.fillMaxSize() else Modifier.wrapContentHeight())
+                .fillMaxSize(),
+            verticalArrangement = Arrangement.SpaceBetween
         ) {
-            Column(
-                modifier = if (isSuggested) Modifier.weight(1f) else Modifier
-            ) {
+            Column {
                 Text(
                     text = course.titulo,
                     style = MaterialTheme.typography.titleMedium.copy(
@@ -259,14 +301,17 @@ private fun CourseCard(
                     text = course.descripcion,
                     style = MaterialTheme.typography.bodyMedium,
                     color = Color(0xFF424242),
-                    maxLines = 3,
+                    maxLines = if (isSuggested) 3 else 3,
                     overflow = TextOverflow.Ellipsis
                 )
             }
 
-            Spacer(Modifier.height(16.dp))
-
-            Box(modifier = Modifier.fillMaxWidth()) {
+            // El botón se queda abajo
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 16.dp)
+            ) {
                 Button(
                     onClick = onDetailsClick,
                     colors = ButtonDefaults.buttonColors(
@@ -275,7 +320,7 @@ private fun CourseCard(
                     ),
                     shape = RoundedCornerShape(24.dp),
                     contentPadding = PaddingValues(horizontal = 24.dp, vertical = 8.dp),
-                    modifier = Modifier.align(Alignment.CenterEnd)
+                    modifier = Modifier.align(Alignment.BottomEnd)
                 ) {
                     Text(
                         text = "Ver Detalles",

@@ -57,6 +57,8 @@ dependencies {
     implementation(project(":core-data"))
     implementation(project(":auth"))
     implementation(project(":chatbot"))
+    implementation(project(":courses"))
+
     // Librerías de Hilt y Lifecycle
     implementation(libs.androidx.hilt.navigation.compose)
     implementation(libs.androidx.lifecycle.viewmodel.compose)

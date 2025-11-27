@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.semilladigital.auth.domain.repository.AuthRepository
 import com.semilladigital.app.core.data.storage.SessionStorage
 import com.semilladigital.dashboard.domain.repository.DashboardRepository
+import com.semilladigital.courses.domain.repository.CourseRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -37,7 +38,8 @@ data class DashboardState(
 class DashboardViewModel @Inject constructor(
     private val authRepository: AuthRepository,
     private val sessionStorage: SessionStorage,
-    private val dashboardRepository: DashboardRepository
+    private val dashboardRepository: DashboardRepository,
+    private val courseRepository: CourseRepository
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(DashboardState())
@@ -45,6 +47,15 @@ class DashboardViewModel @Inject constructor(
 
     init {
         loadData()
+        preloadModules()
+    }
+
+    private fun preloadModules() {
+        viewModelScope.launch {
+            launch {
+                courseRepository.refreshCourses()
+            }
+        }
     }
 
     private fun loadData() {

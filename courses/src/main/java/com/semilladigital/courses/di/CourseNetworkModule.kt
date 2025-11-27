@@ -15,8 +15,6 @@ object CourseNetworkModule {
     @Provides
     @Singleton
     fun provideCourseApiService(retrofit: Retrofit): CourseApiService {
-        // Hilt inyecta 'Retrofit' singleton en :core-data
-        // y lo usa para crear nuestra interfaz de servicio
         return retrofit.create(CourseApiService::class.java)
     }
 }
