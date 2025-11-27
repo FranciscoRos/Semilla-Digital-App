@@ -53,10 +53,14 @@ class DashboardViewModel @Inject constructor(
     }
 
     private fun preloadModules() {
+        val userId = sessionStorage.getUserId()
         viewModelScope.launch {
-            // Carga silenciosa en segundo plano para Cursos y Apoyos
             launch { courseRepository.refreshCourses() }
             launch { apoyosRepository.refreshApoyos() }
+
+            if (!userId.isNullOrEmpty()) {
+                launch { apoyosRepository.refreshRegistro(userId) }
+            }
         }
     }
 

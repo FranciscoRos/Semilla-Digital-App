@@ -50,31 +50,40 @@ class ApoyosViewModel @Inject constructor(
     private fun loadData(forceRefresh: Boolean = false) {
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true, error = null) }
+
             val idUsuarioSesion = sessionStorage.getUserId()
+
             if (idUsuarioSesion.isNullOrBlank()) {
                 _state.update { it.copy(isLoading = false, error = "No hay usuario en sesión.") }
                 return@launch
             }
+
             try {
+                // Ahora ambos usan caché si está disponible
                 val resultApoyos = repository.getAllApoyos(forceRefresh)
-                val resultRegistro = repository.getRegistroPorUsuario(idUsuarioSesion)
+                val resultRegistro = repository.getRegistroPorUsuario(idUsuarioSesion, forceRefresh)
+
                 if (resultApoyos.isSuccess) {
                     val apoyos = resultApoyos.getOrDefault(emptyList())
                     val registro = resultRegistro.getOrNull()
+
                     val itemsProcesados = if (registro != null) {
                         apoyos.map { determinarEstatus(apoyo = it, registro = registro) }
                     } else {
                         apoyos.map { ApoyoUiItem(it, EstatusApoyo.DISPONIBLE) }
                     }
+
                     val targetId = savedStateHandle.get<String>("id")
                     var itemToSelect: ApoyoUiItem? = null
                     var showDialog = false
+
                     if (!targetId.isNullOrEmpty()) {
                         itemToSelect = itemsProcesados.find { it.apoyo.id == targetId }
                         if (itemToSelect != null) {
                             showDialog = true
                         }
                     }
+
                     _state.update {
                         it.copy(
                             listadoApoyos = itemsProcesados,
@@ -99,11 +108,13 @@ class ApoyosViewModel @Inject constructor(
             _state.update { it.copy(error = "No se encontraron datos de tu registro. Recarga la pantalla.") }
             return
         }
+
         val idParcela = registro.Usuario.Parcela.firstOrNull()?.idParcela
         if (idParcela == null) {
             _state.update { it.copy(error = "No tienes parcelas registradas.") }
             return
         }
+
         viewModelScope.launch {
             _state.update { it.copy(isInscribiendo = true, error = null) }
             try {
@@ -113,6 +124,7 @@ class ApoyosViewModel @Inject constructor(
                         _state.update { s ->
                             s.copy(isInscribiendo = false, showDetailsDialog = false, mensajeExito = it.message)
                         }
+                        // Al inscribirse forzamos refresh para ver el cambio de estatus
                         loadData(forceRefresh = true)
                     },
                     onFailure = {
@@ -134,7 +146,9 @@ class ApoyosViewModel @Inject constructor(
         if (yaInscrito) {
             return ApoyoUiItem(apoyo, EstatusApoyo.YA_INSCRITO)
         }
+
         val parcelasUsuario = registro.Usuario.Parcela
+
         for (req in apoyo.Requerimientos) {
             if (req.type == "regla_parcela" && req.config != null) {
                 val cumpleRegla = validarReglaParcela(req.config.actividades, req.config.hectareas, parcelasUsuario)
@@ -148,6 +162,7 @@ class ApoyosViewModel @Inject constructor(
                 }
             }
         }
+
         return ApoyoUiItem(apoyo, EstatusApoyo.DISPONIBLE)
     }
 
@@ -162,6 +177,7 @@ class ApoyosViewModel @Inject constructor(
             } else {
                 true
             }
+
             val cumpleActividad = if (!actividadesRequeridas.isNullOrEmpty()) {
                 val actividadesParcela = parcela.usos.flatMap { it.actividadesEspecificas }
                 actividadesRequeridas.any { reqAct ->
@@ -172,6 +188,7 @@ class ApoyosViewModel @Inject constructor(
             } else {
                 true
             }
+
             cumpleArea && cumpleActividad
         }
     }

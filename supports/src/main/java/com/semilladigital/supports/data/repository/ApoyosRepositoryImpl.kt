@@ -20,14 +20,18 @@ class ApoyosRepositoryImpl @Inject constructor(
     private val _apoyos = MutableStateFlow<List<Apoyo>>(emptyList())
     override val apoyos: StateFlow<List<Apoyo>> = _apoyos.asStateFlow()
 
-    private var lastFetchTime: Long = 0
+    private val _registroUsuario = MutableStateFlow<RegistroData?>(null)
+    override val registroUsuario: StateFlow<RegistroData?> = _registroUsuario.asStateFlow()
+
+    private var lastFetchTimeApoyos: Long = 0
+    private var lastFetchTimeRegistro: Long = 0
     private val CACHE_TIMEOUT = 5 * 60 * 1000
 
     override suspend fun refreshApoyos(): Result<Unit> {
         return try {
             val response = apiService.getApoyos()
             _apoyos.value = response.data
-            lastFetchTime = System.currentTimeMillis()
+            lastFetchTimeApoyos = System.currentTimeMillis()
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)
@@ -35,10 +39,12 @@ class ApoyosRepositoryImpl @Inject constructor(
     }
 
     override suspend fun getAllApoyos(forceRefresh: Boolean): Result<List<Apoyo>> {
-        val isCacheValid = (System.currentTimeMillis() - lastFetchTime) < CACHE_TIMEOUT
+        val isCacheValid = (System.currentTimeMillis() - lastFetchTimeApoyos) < CACHE_TIMEOUT
+
         if (!forceRefresh && _apoyos.value.isNotEmpty() && isCacheValid) {
             return Result.success(_apoyos.value)
         }
+
         return try {
             refreshApoyos()
             Result.success(_apoyos.value)
@@ -51,12 +57,15 @@ class ApoyosRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun getRegistroPorUsuario(idUsuario: String): Result<RegistroData> {
+    override suspend fun refreshRegistro(idUsuario: String): Result<Unit> {
         return try {
             val response = apiService.getTodosLosRegistros()
             val registroEncontrado = response.data.find { it.Usuario.idUsuario == idUsuario }
+
             if (registroEncontrado != null) {
-                Result.success(registroEncontrado)
+                _registroUsuario.value = registroEncontrado
+                lastFetchTimeRegistro = System.currentTimeMillis()
+                Result.success(Unit)
             } else {
                 Result.failure(Exception("No se encontró un registro asociado a este usuario."))
             }
@@ -65,10 +74,36 @@ class ApoyosRepositoryImpl @Inject constructor(
         }
     }
 
+    override suspend fun getRegistroPorUsuario(idUsuario: String, forceRefresh: Boolean): Result<RegistroData> {
+        val isCacheValid = (System.currentTimeMillis() - lastFetchTimeRegistro) < CACHE_TIMEOUT
+        val currentData = _registroUsuario.value
+
+        if (!forceRefresh && currentData != null && currentData.Usuario.idUsuario == idUsuario && isCacheValid) {
+            return Result.success(currentData)
+        }
+
+        return try {
+            refreshRegistro(idUsuario)
+            val newData = _registroUsuario.value
+            if (newData != null) {
+                Result.success(newData)
+            } else {
+                Result.failure(Exception("No se encontró el registro."))
+            }
+        } catch (e: Exception) {
+            if (currentData != null) {
+                Result.success(currentData)
+            } else {
+                Result.failure(e)
+            }
+        }
+    }
+
     override suspend fun inscribirse(idApoyo: String, idParcela: String): Result<HistorialApoyoResponse> {
         return try {
             val request = HistorialApoyoRequest(parcelaId = idParcela)
             val response = apiService.agregarHistorialApoyo(idApoyo, request)
+
             if (response.success) {
                 Result.success(response)
             } else {
