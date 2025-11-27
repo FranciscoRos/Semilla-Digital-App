@@ -62,7 +62,7 @@ class AuthRepositoryImpl @Inject constructor(
     override suspend fun getUserProfile(token: String): Result<User> {
         return try {
             val bearerToken = "Bearer $token"
-            val userDto = apiService.getMe(bearerToken)
+            val userDto = apiService.getMe()
 
             val apellidos = "${userDto.apellido1 ?: ""} ${userDto.apellido2 ?: ""}".trim()
             val safeRole = userDto.rol?.firstOrNull()?.nombreRol ?: "Usuario"
@@ -89,12 +89,9 @@ class AuthRepositoryImpl @Inject constructor(
 
     override suspend fun logout(token: String): Result<Unit> {
         return try {
-            // El backend espera: Authorization: Bearer <token>
-            apiService.logout("Bearer $token")
+            apiService.logout()
             Result.success(Unit)
         } catch (e: Exception) {
-            // Incluso si falla la red, devolveremos error,
-            // pero el ViewModel se encargará de borrar la sesión local de todos modos.
             Result.failure(e)
         }
     }
