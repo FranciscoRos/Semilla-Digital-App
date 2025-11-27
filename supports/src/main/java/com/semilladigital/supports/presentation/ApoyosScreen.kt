@@ -70,14 +70,35 @@ fun ApoyosScreen(
                 apoyo.descripcion.contains(state.searchQuery, ignoreCase = true)
     }
 
+    // --- CONTEXTO INTELIGENTE DEL BOT ---
     LaunchedEffect(state.selectedApoyoItem, filteredItems) {
         val selected = state.selectedApoyoItem
+
         if (selected != null) {
+            // Caso 1: Viendo el detalle de un apoyo
             val apoyo = selected.apoyo
+            val reqs = apoyo.Requerimientos.joinToString(", ") { req ->
+                req.nombre ?: req.Requisito ?: "Requisito general"
+            }
             chatViewModel.setContext(
-                "Viendo detalle: '${apoyo.nombre_programa}'. " +
-                        "Estatus para usuario: ${selected.estatus}. " +
-                        "Motivo (si aplica): ${selected.motivoNoEligible ?: "N/A"}"
+                "El usuario está viendo el detalle del Apoyo: '${apoyo.nombre_programa}'. " +
+                        "Institución: ${apoyo.institucion_acronimo}. " +
+                        "Estatus para el usuario: ${selected.estatus}. " +
+                        "Motivo (si no es elegible): ${selected.motivoNoEligible ?: "N/A"}. " +
+                        "Objetivo: ${apoyo.objetivo}. " +
+                        "Requisitos clave: $reqs."
+            )
+        } else {
+            // Caso 2: Viendo la lista general
+            val listaApoyosTexto = filteredItems.joinToString(separator = "\n") { item ->
+                "- ${item.apoyo.nombre_programa} (${item.apoyo.institucion_acronimo}) -> Estatus: ${item.estatus}"
+            }
+
+            val searchContext = if (state.searchQuery.isNotBlank()) " Buscando activamente: '${state.searchQuery}'." else ""
+
+            chatViewModel.setContext(
+                "El usuario está en la lista de Apoyos y Programas.$searchContext\n" +
+                        "LISTA DE APOYOS VISIBLES EN PANTALLA:\n$listaApoyosTexto"
             )
         }
     }
@@ -143,7 +164,7 @@ fun ApoyosScreen(
                 if (disponibles.isNotEmpty()) {
                     item {
                         Text(
-                            "Disponibles para ti ✅",
+                            "Disponibles para ti ",
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold,
                             color = Color(0xFF2E7D32)
