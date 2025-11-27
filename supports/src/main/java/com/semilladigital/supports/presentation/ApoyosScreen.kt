@@ -1,6 +1,7 @@
 package com.semilladigital.supports.presentation
 
 import android.app.Activity
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -38,17 +39,11 @@ fun ApoyosScreen(
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
 
-    // Configuración de la barra de estado para iconos oscuros
     val view = LocalView.current
     if (!view.isInEditMode) {
         SideEffect {
             val window = (view.context as Activity).window
-            // Hacemos la barra de estado transparente o blanca según prefieras
-            // Aquí la pongo transparente para que tome el color del TopAppBar/Scaffold
             window.statusBarColor = Color.Transparent.toArgb()
-
-            // true = iconos oscuros (para fondo claro)
-            // false = iconos claros (para fondo oscuro)
             WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = true
         }
     }
@@ -88,7 +83,7 @@ fun ApoyosScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
+            CenterAlignedTopAppBar(
                 title = { Text("Apoyos y Programas") },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
@@ -96,14 +91,14 @@ fun ApoyosScreen(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color.White, // Aseguramos fondo blanco para la barra
+                    containerColor = Color.White,
                     titleContentColor = Color.Black,
                     navigationIconContentColor = Color.Black,
                     actionIconContentColor = Color.Black
                 )
             )
         },
-        containerColor = Color(0xFFF5F6F8) // Color de fondo general
+        containerColor = Color(0xFFF5F6F8)
     ) { padding ->
         LazyColumn(
             modifier = Modifier
@@ -120,8 +115,8 @@ fun ApoyosScreen(
                     leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(top = 8.dp), // Un poco de espacio arriba
-                    shape = RoundedCornerShape(12.dp),
+                        .padding(top = 8.dp),
+                    shape = RoundedCornerShape(24.dp),
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedContainerColor = Color.White,
                         unfocusedContainerColor = Color.White,
@@ -184,17 +179,20 @@ fun ApoyosScreen(
 fun ApoyoCard(apoyo: Apoyo, isSuggested: Boolean, onClick: () -> Unit) {
     Card(
         modifier = Modifier
-            .then(if (isSuggested) Modifier.width(280.dp) else Modifier.fillMaxWidth()) // CORRECCIÓN AQUÍ
+            .then(if (isSuggested) Modifier.width(280.dp) else Modifier.fillMaxWidth())
             .clickable(onClick = onClick),
-        shape = RoundedCornerShape(16.dp),
-        elevation = CardDefaults.cardElevation(4.dp),
-        colors = CardDefaults.cardColors(containerColor = if (isSuggested) Color(0xFFE8F5E9) else Color.White)
+        shape = RoundedCornerShape(14.dp),
+        elevation = CardDefaults.cardElevation(3.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        border = BorderStroke(1.dp, Color(0xFFE0E0E0))
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(
                 text = apoyo.nombre_programa,
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold,
+                style = MaterialTheme.typography.titleMedium.copy(
+                    fontWeight = FontWeight.Bold
+                ),
+                color = Color.Black,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis
             )
@@ -204,18 +202,20 @@ fun ApoyoCard(apoyo: Apoyo, isSuggested: Boolean, onClick: () -> Unit) {
                 style = MaterialTheme.typography.bodySmall,
                 color = Color.Gray
             )
-            Spacer(Modifier.height(8.dp))
+            Spacer(Modifier.height(12.dp))
             Text(
                 text = apoyo.descripcion,
                 style = MaterialTheme.typography.bodyMedium,
+                color = Color(0xFF424242),
                 maxLines = 3,
                 overflow = TextOverflow.Ellipsis
             )
-            Spacer(Modifier.height(12.dp))
+            Spacer(Modifier.height(16.dp))
             Button(
                 onClick = onClick,
-                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
-                modifier = Modifier.align(Alignment.End)
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4CAF50)),
+                modifier = Modifier.align(Alignment.End),
+                shape = RoundedCornerShape(24.dp)
             ) {
                 Text("Ver Detalles")
             }
@@ -230,7 +230,7 @@ fun ApoyoDetailsDialog(apoyo: Apoyo, onClose: () -> Unit) {
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(vertical = 32.dp),
-            shape = RoundedCornerShape(16.dp),
+            shape = RoundedCornerShape(18.dp),
             colors = CardDefaults.cardColors(containerColor = Color.White)
         ) {
             LazyColumn(modifier = Modifier.padding(24.dp)) {

@@ -4,6 +4,7 @@ import android.content.Intent
 import android.net.Uri
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
@@ -19,35 +20,36 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp // <--- IMPORTANTE: Agregado para arreglar el error
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.semilladigital.app.core.ui.SemillaDigitalTheme
 import com.semilladigital.app.core.ui.SemillaScreen
-import com.semilladigital.chatbot.presentation.ChatViewModel 
+import com.semilladigital.chatbot.presentation.ChatViewModel
 import com.semilladigital.courses.domain.model.Course
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CourseScreen(
     viewModel: CourseViewModel = hiltViewModel(),
-    chatViewModel: ChatViewModel = hiltViewModel(), // Inyectamos el Chat para pasarle contexto
+    chatViewModel: ChatViewModel = hiltViewModel(),
     onNavigateBack: () -> Unit
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val context = LocalContext.current
 
-    // 1. Contexto general al entrar a la pantalla
     LaunchedEffect(Unit) {
-        chatViewModel.setContext("El usuario está navegando en la lista general de Cursos y Capacitación. Puede ver cursos recomendados y filtrar por temas.")
+        chatViewModel.setContext("El usuario está navegando en la lista general de Cursos y Capacitación.")
     }
 
     SemillaDigitalTheme {
         SemillaScreen(
             title = "Cursos y Capacitación",
             onNavigateBack = onNavigateBack,
-            onNotificationClick = { /* TODO */ }
+            onNotificationClick = { }
         ) { paddingValues ->
 
             CourseContent(
@@ -58,14 +60,9 @@ fun CourseScreen(
 
             val selectedCourse = state.selectedCourse
             if (selectedCourse != null) {
-
-                // 2. Contexto específico al abrir un curso
                 LaunchedEffect(selectedCourse) {
                     chatViewModel.setContext(
-                        "El usuario está viendo los detalles del curso: '${selectedCourse.titulo}'. " +
-                                "Descripción: ${selectedCourse.detalles ?: selectedCourse.descripcion}. " +
-                                "Modalidad: ${selectedCourse.modalidad}. " +
-                                "Dirección: ${selectedCourse.direccion ?: "No especificada"}."
+                        "El usuario está viendo los detalles del curso: '${selectedCourse.titulo}'."
                     )
                 }
 
@@ -73,7 +70,6 @@ fun CourseScreen(
                     course = selectedCourse,
                     onDismiss = {
                         viewModel.onEvent(CourseEvent.OnHideDetails)
-                        // 3. Regresar al contexto general al cerrar
                         chatViewModel.setContext("El usuario regresó a la lista de Cursos.")
                     },
                     onGoToMap = { lat, lon ->
@@ -104,7 +100,10 @@ private fun CourseContent(
     state: CourseState,
     onEvent: (CourseEvent) -> Unit
 ) {
-    Box(modifier = modifier.fillMaxSize()) {
+    val titleColor = Color(0xFF07490A)
+    val titleColor2 = MaterialTheme.colorScheme.secondary
+
+    Box(modifier = modifier.fillMaxSize().background(Color(0xFFF5F6F8))) {
         if (state.isLoading) {
             CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
         }
@@ -120,16 +119,15 @@ private fun CourseContent(
 
         if (!state.isLoading && state.error == null) {
             LazyColumn(
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp),
                 contentPadding = PaddingValues(bottom = 16.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                // --- Barra de Búsqueda ---
                 item {
+                    Spacer(Modifier.height(8.dp))
                     Row(
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 8.dp),
+                            .fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
@@ -139,7 +137,7 @@ private fun CourseContent(
                             onQueryChange = { onEvent(CourseEvent.OnSearchQueryChanged(it)) }
                         )
                         IconButton(onClick = { onEvent(CourseEvent.OnShowFilterDialog) }) {
-                            Icon(Icons.Filled.FilterList, contentDescription = "Filtros")
+                            Icon(Icons.Filled.FilterList, contentDescription = "Filtros", tint = Color.Gray)
                         }
                     }
                 }
@@ -149,64 +147,54 @@ private fun CourseContent(
                         state.selectedModalidad != "Todas" ||
                         state.selectedDateFilter != "Todos"
 
-                // --- SECCIÓN: CURSOS PARA TI ---
                 if (state.recommendedCourses.isNotEmpty() && !isFiltering) {
                     item {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f))
-                                .padding(vertical = 16.dp)
-                        ) {
-                            Text(
-                                text = "Cursos para ti \uD83C\uDF31",
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.padding(horizontal = 16.dp)
-                            )
-                            Text(
-                                text = "Basado en tus actividades productivas",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.padding(horizontal = 16.dp)
-                            )
-                            Spacer(Modifier.height(12.dp))
+                        Text(
+                            text = "Cursos para ti \uD83C\uDF31",
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Bold,
+                            color = titleColor
+                        )
+                        Text(
+                            text = "Basado en tus actividades",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = Color.Gray
+                        )
+                        Spacer(Modifier.height(8.dp))
 
-                            LazyRow(
-                                contentPadding = PaddingValues(horizontal = 16.dp),
-                                horizontalArrangement = Arrangement.spacedBy(12.dp)
-                            ) {
-                                items(state.recommendedCourses) { course ->
-                                    CourseCard(
-                                        course = course,
-                                        onDetailsClick = { onEvent(CourseEvent.OnShowDetails(course)) },
-                                        modifier = Modifier.width(300.dp)
-                                    )
-                                }
+                        LazyRow(
+                            horizontalArrangement = Arrangement.spacedBy(12.dp),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            items(state.recommendedCourses) { course ->
+                                CourseCard(
+                                    course = course,
+                                    isSuggested = true,
+                                    onDetailsClick = { onEvent(CourseEvent.OnShowDetails(course)) }
+                                )
                             }
                         }
+                        Spacer(Modifier.height(16.dp))
                     }
                 }
 
-                // --- SECCIÓN: TODOS LOS CURSOS ---
                 item {
-                    Spacer(Modifier.height(8.dp))
                     Text(
-                        text = if (isFiltering) "Resultados de búsqueda" else "Todos los Cursos",
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.primary,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(horizontal = 16.dp)
+                        text = if (isFiltering) "Resultados" else "Todos los Cursos",
+                        style = MaterialTheme.typography.titleLarge,
+                        color = titleColor,
+                        fontWeight = FontWeight.Bold
                     )
+                    Spacer(Modifier.height(8.dp))
                 }
 
                 if (state.courses.isEmpty() && !state.isLoading) {
                     item {
                         Text(
-                            text = "No se encontraron cursos que coincidan con tu búsqueda.",
+                            text = "No se encontraron cursos.",
                             textAlign = TextAlign.Center,
-                            modifier = Modifier.fillMaxWidth().padding(32.dp)
+                            modifier = Modifier.fillMaxWidth().padding(32.dp),
+                            color = Color.Gray
                         )
                     }
                 }
@@ -214,10 +202,8 @@ private fun CourseContent(
                 items(state.courses) { course ->
                     CourseCard(
                         course = course,
-                        onDetailsClick = { onEvent(CourseEvent.OnShowDetails(course)) },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp)
+                        isSuggested = false,
+                        onDetailsClick = { onEvent(CourseEvent.OnShowDetails(course)) }
                     )
                 }
             }
@@ -225,82 +211,73 @@ private fun CourseContent(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun CourseCard(
     course: Course,
-    onDetailsClick: () -> Unit,
-    modifier: Modifier = Modifier
+    isSuggested: Boolean,
+    onDetailsClick: () -> Unit
 ) {
     Card(
-        modifier = modifier,
-        elevation = CardDefaults.cardElevation(defaultElevation = 3.dp),
-        onClick = onDetailsClick,
+        modifier = Modifier
+            .then(if (isSuggested) Modifier.width(280.dp) else Modifier.fillMaxWidth())
+            .clickable(onClick = onDetailsClick),
         shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = Color.White,
-            contentColor = Color.Black
-        ),
-        border = BorderStroke(1.dp, Color(0xFF424242))
+        elevation = CardDefaults.cardElevation(3.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        border = BorderStroke(1.dp, Color(0xFFE0E0E0))
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(
                 text = course.titulo,
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold,
-                maxLines = 2
+                style = MaterialTheme.typography.titleMedium.copy(
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 16.sp
+                ),
+                color = Color.Black,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis
             )
 
-            Spacer(Modifier.height(6.dp))
+            Spacer(Modifier.height(4.dp))
 
+            val subTitle = if (course.tema != null) "${course.modalidad} • ${course.tema}" else course.modalidad
             Text(
-                text = course.descripcion,
-                style = MaterialTheme.typography.bodyMedium,
-                maxLines = 3,
-                color = Color.DarkGray
+                text = subTitle,
+                style = MaterialTheme.typography.bodySmall,
+                color = Color.Gray
             )
 
             Spacer(Modifier.height(12.dp))
 
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                CourseInfoChip(text = course.modalidad, color = Color(0xFFEEEEEE))
-
-                if (course.tema != null) {
-                    CourseInfoChip(text = course.tema, color = Color(0xFFE3F2FD))
-                }
-            }
+            Text(
+                text = course.descripcion,
+                style = MaterialTheme.typography.bodyMedium,
+                color = Color(0xFF424242),
+                maxLines = 3,
+                overflow = TextOverflow.Ellipsis
+            )
 
             Spacer(Modifier.height(16.dp))
 
-            Button(
-                onClick = onDetailsClick,
-                modifier = Modifier.align(Alignment.End),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.primary
-                ),
-                shape = RoundedCornerShape(8.dp)
-            ) {
-                Text("Ver Detalles")
+            Box(modifier = Modifier.fillMaxWidth()) {
+                Button(
+                    onClick = onDetailsClick,
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFF4CAF50),
+                        contentColor = Color.White
+                    ),
+                    shape = RoundedCornerShape(24.dp),
+                    contentPadding = PaddingValues(horizontal = 24.dp, vertical = 8.dp),
+                    modifier = Modifier.align(Alignment.CenterEnd)
+                ) {
+                    Text(
+                        text = "Ver Detalles",
+                        style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold)
+                    )
+                }
             }
         }
     }
-}
-
-@Composable
-private fun CourseInfoChip(text: String, color: Color) {
-    Text(
-        text = text,
-        style = MaterialTheme.typography.labelMedium,
-        color = Color.Black,
-        fontWeight = FontWeight.Medium,
-        modifier = Modifier
-            .clip(RoundedCornerShape(6.dp))
-            .background(color)
-            .padding(horizontal = 8.dp, vertical = 4.dp)
-    )
 }
 
 @Composable
@@ -312,8 +289,8 @@ private fun SearchBar(
     OutlinedTextField(
         value = query,
         onValueChange = onQueryChange,
-        placeholder = { Text("Buscar cursos...") },
-        leadingIcon = { Icon(Icons.Default.Search, contentDescription = "Buscar") },
+        label = { Text("Buscar cursos...") },
+        leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(24.dp),
         singleLine = true,
@@ -331,11 +308,9 @@ private fun FilterChips(
     temas: List<String>,
     selectedTema: String,
     onTemaSelected: (String) -> Unit,
-
     modalidades: List<String>,
     selectedModalidad: String,
     onModalidadSelected: (String) -> Unit,
-
     dateFilters: List<String>,
     selectedDateFilter: String,
     onDateFilterSelected: (String) -> Unit
@@ -393,7 +368,7 @@ private fun FilterDialog(
             }
         },
         confirmButton = {
-            TextButton(onClick = onDismiss) { Text("OK") }
+            TextButton(onClick = onDismiss) { Text("Aplicar") }
         },
         title = { Text("Filtrar Cursos") },
         text = {
@@ -423,10 +398,11 @@ private fun CourseDetailsSheet(
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
-        sheetState = modalSheetState
+        sheetState = modalSheetState,
+        containerColor = Color.White
     ) {
         LazyColumn(
-            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 32.dp),
+            contentPadding = PaddingValues(start = 24.dp, end = 24.dp, bottom = 32.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             item {
@@ -441,34 +417,42 @@ private fun CourseDetailsSheet(
                     Text(
                         text = "Detalles del Curso",
                         style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.SemiBold,
+                        color = Color(0xFF0288D1)
                     )
+                    Spacer(Modifier.height(4.dp))
                     Text(
                         text = course.detalles,
-                        style = MaterialTheme.typography.bodyLarge
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = Color(0xFF424242)
                     )
                 }
             }
+            item {
+                Text(
+                    text = "Información Adicional",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    color = Color(0xFF0288D1)
+                )
+                Spacer(Modifier.height(4.dp))
+                Text("Modalidad: ${course.modalidad}", style = MaterialTheme.typography.bodyMedium)
+                if(course.tema != null) {
+                    Text("Tema: ${course.tema}", style = MaterialTheme.typography.bodyMedium)
+                }
+            }
+
             if (course.lat != null && course.longitud != null) {
                 item {
-                    Text(
-                        text = "Ubicación",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold
-                    )
-                    if (!course.direccion.isNullOrBlank()) {
-                        Text(
-                            text = course.direccion,
-                            style = MaterialTheme.typography.bodyMedium
-                        )
-                    }
+                    Spacer(Modifier.height(8.dp))
                     Button(
                         onClick = { onGoToMap(course.lat, course.longitud) },
-                        modifier = Modifier.padding(top = 8.dp)
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4CAF50))
                     ) {
                         Icon(Icons.Default.LocationOn, contentDescription = null)
                         Spacer(Modifier.width(8.dp))
-                        Text("Abrir en Google Maps")
+                        Text("Ver Ubicación en Mapa")
                     }
                 }
             }

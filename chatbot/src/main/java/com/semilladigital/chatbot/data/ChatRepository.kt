@@ -13,7 +13,14 @@ class ChatRepository @Inject constructor(
     private val api: ChatbotApi,
     private val sessionStorage: SessionStorage
 ) {
-    private val _messages = MutableStateFlow<List<ChatMessage>>(emptyList())
+    private val _messages = MutableStateFlow<List<ChatMessage>>(
+        listOf(
+            ChatMessage(
+                text = "¡Hola! Soy SedarpeBot 🤖.\n\nEstoy aquí para ayudarte con información sobre apoyos, trámites y dudas del sector agropecuario. ¿En qué puedo servirte hoy?",
+                isUser = false
+            )
+        )
+    )
     val messages = _messages.asStateFlow()
 
     private val _isLoading = MutableStateFlow(false)

@@ -30,6 +30,7 @@ val Pink40 = Color(0xFF7D5260)
 val GreenPrimary = Color(0xFF4CAF50) // El verde principal de botones y headers
 val GreenSecondary = Color(0xFF81C784) // Un verde más claro
 val BlueAccent = Color(0xFF00B0FF)     // El azul para botones como "Dibujar Polígono"
+val GreenDark = Color(0xFF07490A)
 val TextPrimary = Color(0xFF212121)   // Texto oscuro
 val BackgroundLight = Color(0xFFFFFFFF)
 val GrayLight = Color(0xFFF5F5F5)   // Fondo de alertas o campos

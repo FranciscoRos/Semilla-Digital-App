@@ -42,7 +42,7 @@ private val DarkColorScheme = darkColorScheme(
 
 private val LightColorScheme = lightColorScheme(
     primary = GreenPrimary,       // El verde principal
-    secondary = BlueAccent,     // El azul de acento
+    secondary = GreenDark,     // El azul de acento
     background = BackgroundLight, // Blanco
     surface = BackgroundLight,    // Blanco
     onPrimary = Color.White,      // Texto sobre botones verdes
