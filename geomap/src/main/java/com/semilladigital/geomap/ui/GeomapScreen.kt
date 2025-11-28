@@ -29,6 +29,7 @@ import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.*
 import com.semilladigital.chatbot.presentation.ChatViewModel
 import com.semilladigital.geomap.utils.MapUtils
+import com.google.android.gms.maps.model.BitmapDescriptorFactory
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -177,8 +178,8 @@ fun GeomapScreen(
 
                 state.filteredUbicaciones.forEach { ubicacion ->
                     val emoji = MapUtils.getEmojiForUbicacionType(ubicacion.tipo)
-                    val colorHex = MapUtils.getColorForUbicacionType(ubicacion.tipo)
-                    val icon = MapUtils.createColoredTextIcon(emoji, colorHex)
+                    val colorHex = MapUtils.getPinColorHexForUbicacionType(ubicacion.tipo)
+                    val icon = MapUtils.createColoredPinIconWithText(emoji, colorHex)
 
                     Marker(
                         state = MarkerState(
@@ -186,6 +187,7 @@ fun GeomapScreen(
                         ),
                         title = ubicacion.nombre,
                         icon = icon,
+                        anchor = androidx.compose.ui.geometry.Offset(0.5f, 1f),
                         onInfoWindowClick = { viewModel.selectUbicacion(ubicacion) },
                         onClick = {
                             viewModel.selectUbicacion(ubicacion)

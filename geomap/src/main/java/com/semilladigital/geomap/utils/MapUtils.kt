@@ -4,8 +4,9 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Paint
+import android.graphics.Path
+import android.graphics.Color
 import android.graphics.RectF
-import androidx.compose.ui.graphics.Color
 import com.google.android.gms.maps.model.BitmapDescriptor
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.LatLng
@@ -31,20 +32,32 @@ object MapUtils {
             "CENTRO_ACOPIO" -> "📦"
             "SEDE_GOBIERNO" -> "🏛️"
             "PROVEEDOR_INSUMOS" -> "🛒"
+            "MERCADO_LOCAL" -> "🛒"
             "FINANCIAMIENTO" -> "💰"
             "EDUCACION" -> "📚"
             else -> "📍"
         }
     }
 
-    fun getColorForUbicacionType(tipo: String): Long {
+    fun getHueForUbicacionType(tipo: String): Float {
         return when (tipo.uppercase()) {
-            "CENTRO_ACOPIO" -> 0xFF8BC34A // Verde Lima
-            "SEDE_GOBIERNO" -> 0xFF2196F3 // Azul
-            "PROVEEDOR_INSUMOS" -> 0xFFFF9800 // Naranja
-            "FINANCIAMIENTO" -> 0xFFFFC107 // Ámbar (Amarillo)
-            "EDUCACION" -> 0xFF9C27B0 // Púrpura
-            else -> 0xFF795548 // Marrón (Default)
+            "CENTRO_ACOPIO" -> BitmapDescriptorFactory.HUE_GREEN
+            "SEDE_GOBIERNO" -> BitmapDescriptorFactory.HUE_AZURE
+            "PROVEEDOR_INSUMOS" -> BitmapDescriptorFactory.HUE_ORANGE
+            "FINANCIAMIENTO" -> BitmapDescriptorFactory.HUE_YELLOW
+            "EDUCACION" -> BitmapDescriptorFactory.HUE_MAGENTA
+            else -> BitmapDescriptorFactory.HUE_RED
+        }
+    }
+
+    fun getPinColorHexForUbicacionType(tipo: String): Int {
+        return when (tipo.uppercase()) {
+            "CENTRO_ACOPIO" -> Color.parseColor("#4CAF50")
+            "SEDE_GOBIERNO" -> Color.parseColor("#2196F3")
+            "PROVEEDOR_INSUMOS" -> Color.parseColor("#FF9800")
+            "FINANCIAMIENTO" -> Color.parseColor("#FFC107")
+            "EDUCACION" -> Color.parseColor("#9C27B0")
+            else -> Color.parseColor("#F44336")
         }
     }
 
@@ -73,34 +86,46 @@ object MapUtils {
         return BitmapDescriptorFactory.fromBitmap(bitmap)
     }
 
-    fun createColoredTextIcon(text: String, colorHex: Long): BitmapDescriptor? {
-        val emojiSize = 72f
-        val padding = 12f
-        val cornerRadius = 24f
+    fun createColoredPinIconWithText(emoji: String, colorHex: Int): BitmapDescriptor? {
+        val pinWidth = 80
+        val pinHeight = 110
+        val circleRadius = 35f
+        val bottomPoint = 100f
+        val circleY = 40f
 
-        val textPaint = Paint().apply {
-            textSize = emojiSize
-            textAlign = Paint.Align.CENTER
-            color = android.graphics.Color.BLACK
-        }
-
-        val textWidth = textPaint.measureText(text)
-        val iconWidth = (textWidth + 2 * padding).toInt()
-        val iconHeight = (emojiSize + 2 * padding).toInt()
-
-        val bitmap = Bitmap.createBitmap(iconWidth, iconHeight, Bitmap.Config.ARGB_8888)
+        val bitmap = Bitmap.createBitmap(pinWidth, pinHeight, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(bitmap)
 
+        val pinPath = Path()
+        pinPath.addCircle((pinWidth / 2).toFloat(), circleY, circleRadius, Path.Direction.CW)
+        pinPath.lineTo((pinWidth / 2 - 10).toFloat(), circleY + circleRadius)
+        pinPath.lineTo((pinWidth / 2).toFloat(), bottomPoint)
+        pinPath.lineTo((pinWidth / 2 + 10).toFloat(), circleY + circleRadius)
+        pinPath.close()
+
         val backgroundPaint = Paint().apply {
-            color = colorHex.toInt()
-            style = Paint.Style.FILL
+            color = colorHex
+            isAntiAlias = true
         }
 
-        val rect = RectF(0f, 0f, iconWidth.toFloat(), iconHeight.toFloat())
-        canvas.drawRoundRect(rect, cornerRadius, cornerRadius, backgroundPaint)
+        val shadowPaint = Paint().apply {
+            color = Color.BLACK
+            alpha = 50
+            isAntiAlias = true
+        }
+        canvas.drawOval(RectF(15f, bottomPoint - 15f, pinWidth - 15f, bottomPoint + 5f), shadowPaint)
 
-        val textY = (iconHeight / 2) + (textPaint.textSize / 2) - textPaint.fontMetrics.descent
-        canvas.drawText(text, (iconWidth / 2).toFloat(), textY, textPaint)
+        canvas.drawPath(pinPath, backgroundPaint)
+
+        val textPaint = Paint().apply {
+            textSize = 50f
+            textAlign = Paint.Align.CENTER
+            color = Color.BLACK
+            isAntiAlias = true
+        }
+
+        val textY = circleY + (textPaint.textSize / 2) - textPaint.fontMetrics.descent * 0.7f
+        canvas.drawText(emoji, (pinWidth / 2).toFloat(), textY, textPaint)
 
         return BitmapDescriptorFactory.fromBitmap(bitmap)
     }

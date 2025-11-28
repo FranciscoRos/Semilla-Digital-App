@@ -6,7 +6,9 @@ import com.semilladigital.geomap.domain.model.Parcela
 import com.semilladigital.geomap.domain.model.Ubicacion
 import com.semilladigital.geomap.domain.use_case.GetMapDataUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -47,7 +49,6 @@ class GeomapViewModel @Inject constructor(
                             allUbicaciones = data.ubicaciones,
                         )
                     }
-                    // Inicializa el filtro con el query actual (que es "" al inicio)
                     applyFilter(_state.value.searchQuery)
                 },
                 onFailure = {
