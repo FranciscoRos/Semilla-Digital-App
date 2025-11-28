@@ -25,15 +25,17 @@ class ApoyosRepositoryImpl @Inject constructor(
 
     private var lastFetchTimeApoyos: Long = 0
     private var lastFetchTimeRegistro: Long = 0
-    private val CACHE_TIMEOUT = 5 * 60 * 1000
+    private val CACHE_TIMEOUT = 5 * 60 * 1000 // 5 minutos
 
     override suspend fun refreshApoyos(): Result<Unit> {
         return try {
             val response = apiService.getApoyos()
+            // Asignamos la lista que viene dentro de "data"
             _apoyos.value = response.data
             lastFetchTimeApoyos = System.currentTimeMillis()
             Result.success(Unit)
         } catch (e: Exception) {
+            e.printStackTrace()
             Result.failure(e)
         }
     }
@@ -46,9 +48,13 @@ class ApoyosRepositoryImpl @Inject constructor(
         }
 
         return try {
-            refreshApoyos()
-            Result.success(_apoyos.value)
+            val response = apiService.getApoyos()
+            _apoyos.value = response.data
+            lastFetchTimeApoyos = System.currentTimeMillis()
+            Result.success(response.data)
         } catch (e: Exception) {
+            e.printStackTrace()
+            // Si falla la red pero tenemos datos viejos, los devolvemos
             if (_apoyos.value.isNotEmpty()) {
                 Result.success(_apoyos.value)
             } else {
@@ -59,15 +65,16 @@ class ApoyosRepositoryImpl @Inject constructor(
 
     override suspend fun refreshRegistro(idUsuario: String): Result<Unit> {
         return try {
-            val response = apiService.getTodosLosRegistros()
-            val registroEncontrado = response.data.find { it.Usuario.idUsuario == idUsuario }
+            val registrosResponse = apiService.getTodosLosRegistros()
+            val registroEncontrado = registrosResponse.data.find { it.Usuario.idUsuario == idUsuario }
 
             if (registroEncontrado != null) {
                 _registroUsuario.value = registroEncontrado
                 lastFetchTimeRegistro = System.currentTimeMillis()
                 Result.success(Unit)
             } else {
-                Result.failure(Exception("No se encontró un registro asociado a este usuario."))
+                _registroUsuario.value = null
+                Result.failure(Exception("Usuario no encontrado en los registros"))
             }
         } catch (e: Exception) {
             Result.failure(e)

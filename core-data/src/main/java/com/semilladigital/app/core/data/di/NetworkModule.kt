@@ -14,7 +14,7 @@ import com.semilladigital.app.core.data.remote.AuthInterceptor
 @InstallIn(SingletonComponent::class)
 object NetworkModule {
 
-    private const val BASE_URL = "http://192.168.3.88:8000/api/"
+    private const val BASE_URL = "http://192.168.1.64:8000/api/"
 
     // Interceptor de Logs
     @Provides
