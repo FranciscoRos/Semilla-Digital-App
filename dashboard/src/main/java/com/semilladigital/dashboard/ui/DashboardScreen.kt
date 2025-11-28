@@ -204,7 +204,6 @@ fun DashboardScreen(
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                // Nuevas Secciones Estáticas
                 RevisionesSection()
 
                 Spacer(modifier = Modifier.height(4.dp))
@@ -423,9 +422,6 @@ fun NewsCard(
     }
 }
 
-// -------------------------------------------------------------
-// Componentes Nuevos (Estáticos para futura implementación)
-// -------------------------------------------------------------
 
 @Composable
 fun RevisionesSection() {
@@ -436,12 +432,12 @@ fun RevisionesSection() {
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column(modifier = Modifier.padding(24.dp)) {
-            // Header
+
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(
                     imageVector = Icons.Default.CheckCircleOutline,
                     contentDescription = null,
-                    tint = Color(0xFF1E88E5), // Azul
+                    tint = Color(0xFF1E88E5),
                     modifier = Modifier.size(24.dp)
                 )
                 Spacer(modifier = Modifier.width(12.dp))
@@ -455,7 +451,7 @@ fun RevisionesSection() {
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Cita Verificación
+
             RevisionItem(
                 icon = Icons.Default.DateRange,
                 title = "CITA VERIFICACIÓN",
@@ -474,7 +470,7 @@ fun RevisionesSection() {
                 color = Color.LightGray.copy(alpha = 0.3f)
             )
 
-            // Revisión Documental
+
             RevisionItem(
                 icon = Icons.Default.Description,
                 title = "REVISIÓN DOCUMENTAL",
@@ -489,14 +485,14 @@ fun RevisionesSection() {
                             )
                             Spacer(modifier = Modifier.width(8.dp))
                             Surface(
-                                color = Color(0xFFFFF3E0), // Naranja claro
+                                color = Color(0xFFFFF3E0),
                                 shape = RoundedCornerShape(6.dp)
                             ) {
                                 Text(
                                     text = "Pendiente",
                                     modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
                                     style = MaterialTheme.typography.labelMedium,
-                                    color = Color(0xFFEF6C00), // Naranja oscuro
+                                    color = Color(0xFFEF6C00),
                                     fontWeight = FontWeight.Bold
                                 )
                             }
@@ -516,13 +512,13 @@ fun RevisionesSection() {
                 color = Color.LightGray.copy(alpha = 0.3f)
             )
 
-            // Apoyos Activos
+
             RevisionItem(
-                icon = Icons.Default.VolunteerActivism, // Ícono de mano/corazón
+                icon = Icons.Default.VolunteerActivism,
                 title = "APOYOS ACTIVOS",
                 content = {
                     Text(
-                        text = "No has solicitado apoyos aún.",
+                        text = "No se te han aprobado apoyos aún.",
                         style = MaterialTheme.typography.bodyMedium,
                         color = Color.Gray
                     )
@@ -565,7 +561,7 @@ fun HistorialSection() {
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column(modifier = Modifier.padding(24.dp)) {
-            // Header
+
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -575,7 +571,7 @@ fun HistorialSection() {
                     Icon(
                         imageVector = Icons.Default.History,
                         contentDescription = null,
-                        tint = Color(0xFF7E57C2), // Morado
+                        tint = Color(0xFF7E57C2),
                         modifier = Modifier.size(24.dp)
                     )
                     Spacer(modifier = Modifier.width(12.dp))
@@ -590,7 +586,6 @@ fun HistorialSection() {
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            // Botones de filtro
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 OutlinedButton(
                     onClick = { },
@@ -618,12 +613,11 @@ fun HistorialSection() {
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Estado Vacío (Empty State)
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(140.dp)
-                    .background(Color(0xFFF9FAFB), RoundedCornerShape(12.dp)) // Fondo gris muy claro
+                    .background(Color(0xFFF9FAFB), RoundedCornerShape(12.dp))
                     .padding(16.dp),
                 contentAlignment = Alignment.Center
             ) {
