@@ -90,6 +90,57 @@ fun DashboardScreen(
                     .fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(20.dp)
             ) {
+                // SECCIÓN DE NOVEDADES
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "Novedades para ti",
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.Black
+                    )
+                    Icon(
+                        imageVector = Icons.Outlined.Notifications,
+                        contentDescription = null,
+                        tint = Color.Gray
+                    )
+                }
+
+                if (state.novedades.isEmpty()) {
+                    Text(
+                        text = "No hay novedades por ahora.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = Color.Gray
+                    )
+                } else {
+                    LazyRow(
+                        horizontalArrangement = Arrangement.spacedBy(16.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        items(state.novedades) { novedad ->
+                            NewsCard(
+                                item = novedad,
+                                onClick = {
+                                    if (novedad.tipo == TipoNovedad.CURSO) {
+                                        onNavigateToCourses(novedad.id)
+                                    } else {
+                                        onNavigateToSupports(novedad.id)
+                                    }
+                                },
+                                modifier = Modifier
+                                    .width(320.dp)
+                                    .height(115.dp)
+                            )
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                // SECCIÓN DE SERVICIOS PRINCIPALES
                 Text(
                     text = "Servicios Principales",
                     style = MaterialTheme.typography.titleLarge,
@@ -151,55 +202,6 @@ fun DashboardScreen(
                     Spacer(modifier = Modifier.weight(1f))
                 }
 
-                Spacer(modifier = Modifier.height(8.dp))
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = "Novedades para ti",
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.Black
-                    )
-                    Icon(
-                        imageVector = Icons.Outlined.Notifications,
-                        contentDescription = null,
-                        tint = Color.Gray
-                    )
-                }
-
-                if (state.novedades.isEmpty()) {
-                    Text(
-                        text = "No hay novedades por ahora.",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = Color.Gray
-                    )
-                } else {
-                    LazyRow(
-                        horizontalArrangement = Arrangement.spacedBy(16.dp),
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        items(state.novedades) { novedad ->
-                            NewsCard(
-                                item = novedad,
-                                onClick = {
-                                    if (novedad.tipo == TipoNovedad.CURSO) {
-                                        onNavigateToCourses(novedad.id)
-                                    } else {
-                                        onNavigateToSupports(novedad.id)
-                                    }
-                                },
-                                modifier = Modifier
-                                    .width(320.dp)
-                                    .height(115.dp)
-                            )
-                        }
-                    }
-                }
-
                 Spacer(modifier = Modifier.height(24.dp))
             }
         }
@@ -212,6 +214,12 @@ fun DashboardHeader(
     userStatus: String,
     onLogout: () -> Unit
 ) {
+    val statusColor = if (userStatus.equals("Pendiente", ignoreCase = true)) {
+        Color(0xFFFFC107)
+    } else {
+        Color(0xFF69F0AE)
+    }
+
     Surface(
         color = MaterialTheme.colorScheme.primary,
         shape = RoundedCornerShape(bottomStart = 32.dp, bottomEnd = 32.dp),
@@ -248,7 +256,7 @@ fun DashboardHeader(
 
                     Column {
                         Text(
-                            text = "Hola, $userName",
+                            text = "Bienvenido, $userName",
                             style = MaterialTheme.typography.titleLarge,
                             color = Color.White,
                             fontWeight = FontWeight.Bold
@@ -264,7 +272,7 @@ fun DashboardHeader(
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
                                     Surface(
-                                        color = Color(0xFF69F0AE),
+                                        color = statusColor,
                                         shape = CircleShape,
                                         modifier = Modifier.size(8.dp)
                                     ) {}
