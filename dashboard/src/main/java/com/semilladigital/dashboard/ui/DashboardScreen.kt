@@ -91,7 +91,6 @@ fun DashboardScreen(
                 verticalArrangement = Arrangement.spacedBy(20.dp)
             ) {
 
-                Spacer(modifier = Modifier.height(24.dp))
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -139,7 +138,6 @@ fun DashboardScreen(
                     }
                 }
 
-                Spacer(modifier = Modifier.height(8.dp))
 
                 Text(
                     text = "Servicios Principales",
@@ -250,7 +248,7 @@ fun DashboardHeader(
 
                     Column {
                         Text(
-                            text = "Hola, $userName",
+                            text = "Bienvenido, $userName",
                             style = MaterialTheme.typography.titleLarge,
                             color = Color.White,
                             fontWeight = FontWeight.Bold
