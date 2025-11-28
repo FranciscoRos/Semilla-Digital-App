@@ -40,6 +40,8 @@ fun GeomapScreen(
     val state by viewModel.state.collectAsStateWithLifecycle()
     val context = LocalContext.current
 
+    var mapType by remember { mutableStateOf(MapType.NORMAL) }
+
     LaunchedEffect(state.selectedUbicacion, state.searchQuery) {
         val ubi = state.selectedUbicacion
         val query = state.searchQuery
@@ -93,38 +95,49 @@ fun GeomapScreen(
                 shadowElevation = 4.dp,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Row(
+                Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .statusBarsPadding() // APLICACIÓN CLAVE
-                        .padding(12.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                        .statusBarsPadding()
                 ) {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Atrás", tint = Color.White)
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 12.dp)
+                            .padding(top = 10.dp, bottom = 10.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        IconButton(onClick = onBack) {
+                            Icon(Icons.Default.ArrowBack, contentDescription = "Atrás", tint = Color.White)
+                        }
+                        TextField(
+                            value = state.searchQuery,
+                            onValueChange = { viewModel.onSearchQueryChange(it) },
+                            placeholder = { Text("Buscar cultivo, municipio...", color = Color.White.copy(alpha = 0.7f)) },
+                            leadingIcon = { Icon(Icons.Default.Search, null, tint = Color.White) },
+                            trailingIcon = if(state.searchQuery.isNotEmpty()) {
+                                { IconButton(onClick = { viewModel.onSearchQueryChange("") }) { Icon(Icons.Default.Close, null, tint = Color.White) } }
+                            } else null,
+                            colors = TextFieldDefaults.colors(
+                                focusedContainerColor = Color.White.copy(alpha = 0.3f),
+                                unfocusedContainerColor = Color.White.copy(alpha = 0.3f),
+                                focusedIndicatorColor = Color.Transparent,
+                                unfocusedIndicatorColor = Color.Transparent,
+                                cursorColor = Color.White,
+                                focusedTextColor = Color.White,
+                                unfocusedTextColor = Color.White
+                            ),
+                            shape = RoundedCornerShape(24.dp),
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(48.dp)
+                        )
                     }
-                    TextField(
-                        value = state.searchQuery,
-                        onValueChange = { viewModel.onSearchQueryChange(it) },
-                        placeholder = { Text("Buscar cultivo, municipio...", color = Color.LightGray) },
-                        leadingIcon = { Icon(Icons.Default.Search, null, tint = Color.Gray) },
-                        trailingIcon = if(state.searchQuery.isNotEmpty()) {
-                            { IconButton(onClick = { viewModel.onSearchQueryChange("") }) { Icon(Icons.Default.Close, null) } }
-                        } else null,
-                        colors = TextFieldDefaults.colors(
-                            focusedContainerColor = Color.White,
-                            unfocusedContainerColor = Color.White,
-                            focusedIndicatorColor = Color.Transparent,
-                            unfocusedIndicatorColor = Color.Transparent
-                        ),
-                        shape = RoundedCornerShape(24.dp),
-                        modifier = Modifier.weight(1f).height(50.dp)
-                    )
                 }
             }
         }
-    ) { padding ->
-        Box(modifier = Modifier.padding(padding).fillMaxSize()) {
+    ) { paddingValues ->
+        Box(modifier = Modifier.padding(paddingValues).fillMaxSize()) {
 
             GoogleMap(
                 modifier = Modifier.fillMaxSize(),
@@ -134,7 +147,7 @@ fun GeomapScreen(
                     myLocationButtonEnabled = hasLocationPermission
                 ),
                 properties = MapProperties(
-                    mapType = MapType.NORMAL,
+                    mapType = mapType,
                     isMyLocationEnabled = hasLocationPermission
                 )
             ) {
@@ -176,6 +189,27 @@ fun GeomapScreen(
                     )
                 }
             }
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .align(Alignment.TopEnd)
+                    .padding(top = 16.dp, end = 80.dp),
+                horizontalArrangement = Arrangement.End,
+            ) {
+                MapTypeButton(
+                    text = "Mapa",
+                    isSelected = mapType == MapType.NORMAL,
+                    onClick = { mapType = MapType.NORMAL }
+                )
+                Spacer(Modifier.width(8.dp))
+                MapTypeButton(
+                    text = "Satélite",
+                    isSelected = mapType == MapType.SATELLITE,
+                    onClick = { mapType = MapType.SATELLITE }
+                )
+            }
+
 
             if(state.isLoading) {
                 CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
@@ -229,6 +263,44 @@ fun GeomapScreen(
                 }
                 Spacer(Modifier.height(24.dp))
             }
+        }
+    }
+}
+
+@Composable
+private fun MapTypeButton(text: String, isSelected: Boolean, onClick: () -> Unit) {
+    val colorScheme = MaterialTheme.colorScheme
+    val shape = RoundedCornerShape(24.dp)
+
+    if (isSelected) {
+        Button(
+            onClick = onClick,
+            colors = ButtonDefaults.buttonColors(
+                containerColor = colorScheme.primary,
+                contentColor = Color.White
+            ),
+            shape = shape,
+            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 0.dp),
+            modifier = Modifier.height(36.dp),
+            elevation = ButtonDefaults.buttonElevation(defaultElevation = 0.dp)
+        ) {
+            Text(text, style = MaterialTheme.typography.labelLarge)
+        }
+    } else {
+        OutlinedButton(
+            onClick = onClick,
+            colors = ButtonDefaults.outlinedButtonColors(
+                containerColor = Color.Transparent,
+                contentColor = Color.White
+            ),
+            border = ButtonDefaults.outlinedButtonBorder.copy(
+                brush = androidx.compose.ui.graphics.SolidColor(Color.White)
+            ),
+            shape = shape,
+            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 0.dp),
+            modifier = Modifier.height(36.dp),
+        ) {
+            Text(text, style = MaterialTheme.typography.labelLarge)
         }
     }
 }
