@@ -23,6 +23,7 @@ import androidx.navigation.navArgument
 import com.semilladigital.auth.ui.login.LoginScreen
 import com.semilladigital.app.core.data.storage.SessionStorage
 import com.semilladigital.dashboard.ui.DashboardScreen
+import com.semilladigital.dashboard.ui.profile.ProfileScreen
 import com.semilladigital.courses.ui.CourseScreen
 import com.semilladigital.auth.ui.register.RegisterScreen
 import com.semilladigital.chatbot.presentation.ChatScreen
@@ -44,6 +45,7 @@ object Routes {
     const val CHATBOT = "chatbot"
     const val FORUM = "forum"
     const val GEOMAP = "geomap"
+    const val PROFILE = "profile"
 }
 
 @HiltViewModel
@@ -148,7 +150,16 @@ fun AppNavigation() {
                             navController.navigate(Routes.LOGIN) {
                                 popUpTo(0)
                             }
+                        },
+                        onNavigateToProfile = {
+                            navController.navigate(Routes.PROFILE)
                         }
+                    )
+                }
+
+                composable(Routes.PROFILE) {
+                    ProfileScreen(
+                        onBack = { navController.popBackStack() }
                     )
                 }
 

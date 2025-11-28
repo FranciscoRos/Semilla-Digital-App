@@ -6,7 +6,8 @@ import com.semilladigital.auth.data.remote.dto.UserDto
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.POST
-
+import retrofit2.http.PUT
+import retrofit2.http.Path
 
 interface AuthApiService {
 
@@ -22,4 +23,11 @@ interface AuthApiService {
 
     @POST("logout")
     suspend fun logout(): Any
+
+    @PUT("registro/{id}")
+    @JvmSuppressWildcards
+    suspend fun updateRegistro(
+        @Path("id") idRegistro: String,
+        @Body request: Map<String, Any>
+    ): Any
 }

@@ -59,7 +59,7 @@ class ApoyosViewModel @Inject constructor(
             }
 
             try {
-                // Ahora ambos usan caché si está disponible
+
                 val resultApoyos = repository.getAllApoyos(forceRefresh)
                 val resultRegistro = repository.getRegistroPorUsuario(idUsuarioSesion, forceRefresh)
 
@@ -124,7 +124,7 @@ class ApoyosViewModel @Inject constructor(
                         _state.update { s ->
                             s.copy(isInscribiendo = false, showDetailsDialog = false, mensajeExito = it.message)
                         }
-                        // Al inscribirse forzamos refresh para ver el cambio de estatus
+
                         loadData(forceRefresh = true)
                     },
                     onFailure = {
@@ -173,7 +173,7 @@ class ApoyosViewModel @Inject constructor(
     ): Boolean {
         return parcelas.any { parcela ->
             val cumpleArea = if (hectareasRequeridas != null) {
-                parcela.area >= hectareasRequeridas
+                (parcela.area ?: 0.0) >= hectareasRequeridas
             } else {
                 true
             }

@@ -97,6 +97,15 @@ class AuthRepositoryImpl @Inject constructor(
         }
     }
 
+    override suspend fun updateProfile(idRegistro: String, updateData: Map<String, Any>): Result<Unit> {
+        return try {
+            apiService.updateRegistro(idRegistro, updateData)
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
     private fun getDummyActividades(): List<String> {
         return listOf(
             "Maíz",

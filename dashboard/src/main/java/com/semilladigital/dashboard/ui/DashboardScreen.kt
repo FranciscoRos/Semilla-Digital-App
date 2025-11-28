@@ -17,6 +17,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -30,6 +31,7 @@ import androidx.core.view.WindowCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.semilladigital.chatbot.presentation.ChatViewModel
+import kotlinx.coroutines.launch
 
 @Composable
 fun DashboardScreen(
@@ -39,11 +41,13 @@ fun DashboardScreen(
     onNavigateToGeomap: () -> Unit,
     onNavigateToForum: () -> Unit,
     onNavigateToLogin: () -> Unit,
+    onNavigateToProfile: () -> Unit,
     viewModel: DashboardViewModel = hiltViewModel(),
     chatViewModel: ChatViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val scrollState = rememberScrollState()
+    val coroutineScope = rememberCoroutineScope()
 
     LaunchedEffect(state.isLoggedOut) {
         if (state.isLoggedOut) {
@@ -81,7 +85,13 @@ fun DashboardScreen(
             DashboardHeader(
                 userName = state.userName,
                 userStatus = state.userStatus,
-                onLogout = { viewModel.onLogout() }
+                onLogout = { viewModel.onLogout() },
+                onProfileClick = onNavigateToProfile,
+                onHistoryClick = {
+                    coroutineScope.launch {
+                        scrollState.animateScrollTo(scrollState.maxValue)
+                    }
+                }
             )
 
             Column(
@@ -90,7 +100,6 @@ fun DashboardScreen(
                     .fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(20.dp)
             ) {
-                // SECCIÓN DE NOVEDADES
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -140,7 +149,6 @@ fun DashboardScreen(
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                // SECCIÓN DE SERVICIOS PRINCIPALES
                 Text(
                     text = "Servicios Principales",
                     style = MaterialTheme.typography.titleLarge,
@@ -202,6 +210,12 @@ fun DashboardScreen(
                     Spacer(modifier = Modifier.weight(1f))
                 }
 
+                Spacer(modifier = Modifier.height(8.dp))
+
+                HistoryCard(
+                    userStatus = state.userStatus
+                )
+
                 Spacer(modifier = Modifier.height(24.dp))
             }
         }
@@ -212,10 +226,12 @@ fun DashboardScreen(
 fun DashboardHeader(
     userName: String,
     userStatus: String,
-    onLogout: () -> Unit
+    onLogout: () -> Unit,
+    onProfileClick: () -> Unit,
+    onHistoryClick: () -> Unit
 ) {
     val statusColor = if (userStatus.equals("Pendiente", ignoreCase = true)) {
-        Color(0xFFFFC107)
+        Color(0xFFFF3D00)
     } else {
         Color(0xFF69F0AE)
     }
@@ -283,6 +299,50 @@ fun DashboardHeader(
                                         color = Color.White,
                                         fontWeight = FontWeight.Medium
                                     )
+                                    Spacer(modifier = Modifier.width(8.dp))
+
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        modifier = Modifier
+                                            .background(Color.White, CircleShape)
+                                            .padding(horizontal = 4.dp, vertical = 2.dp)
+                                    ) {
+                                        IconButton(
+                                            onClick = onHistoryClick,
+                                            modifier = Modifier.size(20.dp)
+                                        ) {
+                                            Icon(
+                                                Icons.Default.History,
+                                                contentDescription = null,
+                                                tint = Color.Gray,
+                                                modifier = Modifier.size(16.dp)
+                                            )
+                                        }
+                                        Spacer(modifier = Modifier.width(4.dp))
+                                        IconButton(
+                                            onClick = onHistoryClick,
+                                            modifier = Modifier.size(20.dp)
+                                        ) {
+                                            Icon(
+                                                Icons.Default.Notifications,
+                                                contentDescription = null,
+                                                tint = Color(0xFFFF8A65),
+                                                modifier = Modifier.size(16.dp)
+                                            )
+                                        }
+                                        Spacer(modifier = Modifier.width(4.dp))
+                                        IconButton(
+                                            onClick = onProfileClick,
+                                            modifier = Modifier.size(20.dp)
+                                        ) {
+                                            Icon(
+                                                Icons.Default.Person,
+                                                contentDescription = null,
+                                                tint = Color(0xFF66BB6A),
+                                                modifier = Modifier.size(16.dp)
+                                            )
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -416,6 +476,135 @@ fun NewsCard(
                 color = MaterialTheme.colorScheme.primary,
                 fontWeight = FontWeight.Bold
             )
+        }
+    }
+}
+
+@Composable
+fun HistoryCard(userStatus: String) {
+    Card(
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(2.dp),
+        shape = RoundedCornerShape(24.dp),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(Icons.Default.History, contentDescription = null, tint = Color(0xFF5E35B1))
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = "Revisiones",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Default.Event, contentDescription = null, tint = Color.Gray, modifier = Modifier.size(16.dp))
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("CITA VERIFICACIÓN", style = MaterialTheme.typography.labelSmall, color = Color.Gray)
+                }
+                Surface(color = Color(0xFFF5F6F8), shape = RoundedCornerShape(8.dp), modifier = Modifier.fillMaxWidth()) {
+                    Text("No hay cita de verificación programada.", modifier = Modifier.padding(12.dp), style = MaterialTheme.typography.bodySmall, color = Color.Gray)
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Default.Description, contentDescription = null, tint = Color.Gray, modifier = Modifier.size(16.dp))
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("REVISIÓN DOCUMENTAL", style = MaterialTheme.typography.labelSmall, color = Color.Gray)
+                }
+
+                Surface(color = Color(0xFFF5F6F8), shape = RoundedCornerShape(8.dp), modifier = Modifier.fillMaxWidth()) {
+                    Row(
+                        modifier = Modifier.padding(12.dp).fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text("Estado Perfil:", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
+                            Text("Tu documentación está en proceso de revisión.", style = MaterialTheme.typography.bodySmall, color = Color.Gray)
+                        }
+                        Surface(
+                            color = Color(0xFFFFF3E0),
+                            shape = RoundedCornerShape(4.dp)
+                        ) {
+                            Text(
+                                text = userStatus,
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = Color(0xFFFF9800),
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Default.VolunteerActivism, contentDescription = null, tint = Color.Gray, modifier = Modifier.size(16.dp))
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("APOYOS ACTIVOS", style = MaterialTheme.typography.labelSmall, color = Color.Gray)
+                }
+                Surface(color = Color(0xFFF5F6F8), shape = RoundedCornerShape(8.dp), modifier = Modifier.fillMaxWidth()) {
+                    Text("No has solicitado apoyos aún.", modifier = Modifier.padding(12.dp), style = MaterialTheme.typography.bodySmall, color = Color.Gray)
+                }
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Default.HistoryEdu, contentDescription = null, tint = Color(0xFF5E35B1))
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "Historial Detallado",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    OutlinedButton(
+                        onClick = {},
+                        shape = RoundedCornerShape(50),
+                        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 0.dp),
+                        modifier = Modifier.height(32.dp)
+                    ) {
+                        Text("Mis Apoyos", fontSize = 10.sp, color = Color(0xFF15803D))
+                    }
+                    OutlinedButton(
+                        onClick = {},
+                        shape = RoundedCornerShape(50),
+                        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 0.dp),
+                        modifier = Modifier.height(32.dp)
+                    ) {
+                        Text("Mis Cursos", fontSize = 10.sp, color = Color.Gray)
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Surface(color = Color(0xFFF5F6F8), shape = RoundedCornerShape(12.dp), modifier = Modifier.fillMaxWidth().height(100.dp)) {
+                Column(
+                    modifier = Modifier.fillMaxSize(),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Icon(Icons.Default.Inbox, contentDescription = null, tint = Color.LightGray, modifier = Modifier.size(32.dp))
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text("No tienes historial de apoyos registrado.", style = MaterialTheme.typography.bodySmall, color = Color.LightGray)
+                }
+            }
         }
     }
 }
