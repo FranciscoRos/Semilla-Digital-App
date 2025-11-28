@@ -1,6 +1,7 @@
 package com.semilladigital.dashboard.ui
 
 import android.app.Activity
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
@@ -22,7 +23,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -138,7 +141,6 @@ fun DashboardScreen(
                     }
                 }
 
-
                 Text(
                     text = "Servicios Principales",
                     style = MaterialTheme.typography.titleLarge,
@@ -201,6 +203,15 @@ fun DashboardScreen(
                 }
 
                 Spacer(modifier = Modifier.height(8.dp))
+
+                // Nuevas Secciones Estáticas
+                RevisionesSection()
+
+                Spacer(modifier = Modifier.height(4.dp))
+
+                HistorialSection()
+
+                Spacer(modifier = Modifier.height(24.dp))
             }
         }
     }
@@ -408,6 +419,230 @@ fun NewsCard(
                 color = MaterialTheme.colorScheme.primary,
                 fontWeight = FontWeight.Bold
             )
+        }
+    }
+}
+
+// -------------------------------------------------------------
+// Componentes Nuevos (Estáticos para futura implementación)
+// -------------------------------------------------------------
+
+@Composable
+fun RevisionesSection() {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(24.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    ) {
+        Column(modifier = Modifier.padding(24.dp)) {
+            // Header
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    imageVector = Icons.Default.CheckCircleOutline,
+                    contentDescription = null,
+                    tint = Color(0xFF1E88E5), // Azul
+                    modifier = Modifier.size(24.dp)
+                )
+                Spacer(modifier = Modifier.width(12.dp))
+                Text(
+                    text = "Revisiones",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.Black
+                )
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // Cita Verificación
+            RevisionItem(
+                icon = Icons.Default.DateRange,
+                title = "CITA VERIFICACIÓN",
+                content = {
+                    Text(
+                        text = "No hay cita de verificación programada.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = Color.Gray,
+                        fontStyle = FontStyle.Italic
+                    )
+                }
+            )
+
+            HorizontalDivider(
+                modifier = Modifier.padding(vertical = 16.dp),
+                color = Color.LightGray.copy(alpha = 0.3f)
+            )
+
+            // Revisión Documental
+            RevisionItem(
+                icon = Icons.Default.Description,
+                title = "REVISIÓN DOCUMENTAL",
+                content = {
+                    Column {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(
+                                text = "Estado Perfil:",
+                                style = MaterialTheme.typography.bodyMedium,
+                                fontWeight = FontWeight.SemiBold,
+                                color = Color.DarkGray
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Surface(
+                                color = Color(0xFFFFF3E0), // Naranja claro
+                                shape = RoundedCornerShape(6.dp)
+                            ) {
+                                Text(
+                                    text = "Pendiente",
+                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                                    style = MaterialTheme.typography.labelMedium,
+                                    color = Color(0xFFEF6C00), // Naranja oscuro
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+                        }
+                        Spacer(modifier = Modifier.height(6.dp))
+                        Text(
+                            text = "Tu información está en proceso de revisión.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = Color.Gray
+                        )
+                    }
+                }
+            )
+
+            HorizontalDivider(
+                modifier = Modifier.padding(vertical = 16.dp),
+                color = Color.LightGray.copy(alpha = 0.3f)
+            )
+
+            // Apoyos Activos
+            RevisionItem(
+                icon = Icons.Default.VolunteerActivism, // Ícono de mano/corazón
+                title = "APOYOS ACTIVOS",
+                content = {
+                    Text(
+                        text = "No has solicitado apoyos aún.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = Color.Gray
+                    )
+                }
+            )
+        }
+    }
+}
+
+@Composable
+fun RevisionItem(icon: ImageVector, title: String, content: @Composable () -> Unit) {
+    Row() {
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            tint = Color.Gray,
+            modifier = Modifier.size(20.dp).padding(top = 2.dp)
+        )
+        Spacer(modifier = Modifier.width(16.dp))
+        Column {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.labelMedium,
+                fontWeight = FontWeight.Bold,
+                color = Color.Gray,
+                letterSpacing = 0.5.sp
+            )
+            Spacer(modifier = Modifier.height(6.dp))
+            content()
+        }
+    }
+}
+
+@Composable
+fun HistorialSection() {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(24.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    ) {
+        Column(modifier = Modifier.padding(24.dp)) {
+            // Header
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        imageVector = Icons.Default.History,
+                        contentDescription = null,
+                        tint = Color(0xFF7E57C2), // Morado
+                        modifier = Modifier.size(24.dp)
+                    )
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Text(
+                        text = "Historial Detallado",
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.Black
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            // Botones de filtro
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                OutlinedButton(
+                    onClick = { },
+                    shape = RoundedCornerShape(8.dp),
+                    border = BorderStroke(1.dp, Color(0xFFE0E0E0)),
+                    modifier = Modifier.height(36.dp),
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFF009688))
+                ) {
+                    Icon(Icons.Default.VolunteerActivism, contentDescription = null, modifier = Modifier.size(16.dp))
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Mis Apoyos", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
+                }
+                OutlinedButton(
+                    onClick = { },
+                    shape = RoundedCornerShape(8.dp),
+                    border = BorderStroke(1.dp, Color(0xFFE0E0E0)),
+                    modifier = Modifier.height(36.dp),
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.Gray)
+                ) {
+                    Icon(Icons.Default.Book, contentDescription = null, modifier = Modifier.size(16.dp))
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Mis Cursos", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
+                }
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // Estado Vacío (Empty State)
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(140.dp)
+                    .background(Color(0xFFF9FAFB), RoundedCornerShape(12.dp)) // Fondo gris muy claro
+                    .padding(16.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Icon(
+                        imageVector = Icons.Default.VolunteerActivism,
+                        contentDescription = null,
+                        tint = Color.LightGray,
+                        modifier = Modifier.size(48.dp)
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Text(
+                        text = "No tienes historial de apoyos registrado.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = Color.LightGray,
+                        textAlign = TextAlign.Center
+                    )
+                }
+            }
         }
     }
 }
