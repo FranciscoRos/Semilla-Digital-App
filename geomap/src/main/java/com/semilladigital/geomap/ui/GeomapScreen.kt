@@ -176,11 +176,16 @@ fun GeomapScreen(
                 }
 
                 state.filteredUbicaciones.forEach { ubicacion ->
+                    val emoji = MapUtils.getEmojiForUbicacionType(ubicacion.tipo)
+                    val colorHex = MapUtils.getColorForUbicacionType(ubicacion.tipo)
+                    val icon = MapUtils.createColoredTextIcon(emoji, colorHex)
+
                     Marker(
                         state = MarkerState(
                             position = LatLng(ubicacion.coordenada.lat, ubicacion.coordenada.lng)
                         ),
                         title = ubicacion.nombre,
+                        icon = icon,
                         onInfoWindowClick = { viewModel.selectUbicacion(ubicacion) },
                         onClick = {
                             viewModel.selectUbicacion(ubicacion)

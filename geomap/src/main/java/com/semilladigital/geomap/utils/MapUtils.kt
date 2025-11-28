@@ -4,14 +4,14 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Paint
+import android.graphics.RectF
+import androidx.compose.ui.graphics.Color
 import com.google.android.gms.maps.model.BitmapDescriptor
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.LatLng
 
 object MapUtils {
 
-    // Asigna un emoji basado en las actividades.
-    // Ahora recibe una lista simple de Strings (del modelo de Dominio)
     fun getEmojiForActivity(actividades: List<String>): String {
         val texto = actividades.joinToString(" ").lowercase()
         return when {
@@ -22,11 +22,32 @@ object MapUtils {
             "abeja" in texto || "miel" in texto -> "🐝"
             "caña" in texto -> "🎋"
             "trigo" in texto -> "🌾"
-            else -> "🌱" // Default
+            else -> "🌱"
         }
     }
 
-    // Calcula el centro geométrico de un polígono para poner el marcador
+    fun getEmojiForUbicacionType(tipo: String): String {
+        return when (tipo.uppercase()) {
+            "CENTRO_ACOPIO" -> "📦"
+            "SEDE_GOBIERNO" -> "🏛️"
+            "PROVEEDOR_INSUMOS" -> "🛒"
+            "FINANCIAMIENTO" -> "💰"
+            "EDUCACION" -> "📚"
+            else -> "📍"
+        }
+    }
+
+    fun getColorForUbicacionType(tipo: String): Long {
+        return when (tipo.uppercase()) {
+            "CENTRO_ACOPIO" -> 0xFF8BC34A // Verde Lima
+            "SEDE_GOBIERNO" -> 0xFF2196F3 // Azul
+            "PROVEEDOR_INSUMOS" -> 0xFFFF9800 // Naranja
+            "FINANCIAMIENTO" -> 0xFFFFC107 // Ámbar (Amarillo)
+            "EDUCACION" -> 0xFF9C27B0 // Púrpura
+            else -> 0xFF795548 // Marrón (Default)
+        }
+    }
+
     fun calculateCentroid(points: List<LatLng>): LatLng {
         var latSum = 0.0
         var lngSum = 0.0
@@ -37,7 +58,6 @@ object MapUtils {
         return LatLng(latSum / points.size, lngSum / points.size)
     }
 
-    // Convierte un Texto/Emoji a un Icono de Mapa (BitmapDescriptor)
     fun textToBitmapDescriptor(text: String, context: Context): BitmapDescriptor? {
         val paint = Paint().apply {
             textSize = 60f
@@ -53,7 +73,35 @@ object MapUtils {
         return BitmapDescriptorFactory.fromBitmap(bitmap)
     }
 
-    // NOTA: El método 'parseCoordinates' ha sido ELIMINADO intencionalmente.
-    // Esa lógica de convertir datos crudos ahora vive en el Mapper (GeomapDtos.kt -> toDomain),
-    // cumpliendo con Clean Architecture.
+    fun createColoredTextIcon(text: String, colorHex: Long): BitmapDescriptor? {
+        val emojiSize = 72f
+        val padding = 12f
+        val cornerRadius = 24f
+
+        val textPaint = Paint().apply {
+            textSize = emojiSize
+            textAlign = Paint.Align.CENTER
+            color = android.graphics.Color.BLACK
+        }
+
+        val textWidth = textPaint.measureText(text)
+        val iconWidth = (textWidth + 2 * padding).toInt()
+        val iconHeight = (emojiSize + 2 * padding).toInt()
+
+        val bitmap = Bitmap.createBitmap(iconWidth, iconHeight, Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(bitmap)
+
+        val backgroundPaint = Paint().apply {
+            color = colorHex.toInt()
+            style = Paint.Style.FILL
+        }
+
+        val rect = RectF(0f, 0f, iconWidth.toFloat(), iconHeight.toFloat())
+        canvas.drawRoundRect(rect, cornerRadius, cornerRadius, backgroundPaint)
+
+        val textY = (iconHeight / 2) + (textPaint.textSize / 2) - textPaint.fontMetrics.descent
+        canvas.drawText(text, (iconWidth / 2).toFloat(), textY, textPaint)
+
+        return BitmapDescriptorFactory.fromBitmap(bitmap)
+    }
 }
