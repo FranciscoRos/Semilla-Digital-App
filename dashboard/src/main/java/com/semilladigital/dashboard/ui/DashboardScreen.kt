@@ -3,6 +3,7 @@ package com.semilladigital.dashboard.ui
 import android.app.Activity
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -14,10 +15,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.SideEffect
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -208,7 +206,7 @@ fun DashboardScreen(
 
                 Spacer(modifier = Modifier.height(4.dp))
 
-                HistorialSection()
+                HistorialSection(historial = state.historial)
 
                 Spacer(modifier = Modifier.height(24.dp))
             }
@@ -553,7 +551,9 @@ fun RevisionItem(icon: ImageVector, title: String, content: @Composable () -> Un
 }
 
 @Composable
-fun HistorialSection() {
+fun HistorialSection(historial: List<HistorialUiItem>) {
+    var selectedTab by remember { mutableIntStateOf(0) }
+
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(24.dp),
@@ -588,22 +588,28 @@ fun HistorialSection() {
 
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 OutlinedButton(
-                    onClick = { },
+                    onClick = { selectedTab = 0 },
                     shape = RoundedCornerShape(8.dp),
-                    border = BorderStroke(1.dp, Color(0xFFE0E0E0)),
+                    border = BorderStroke(1.dp, if (selectedTab == 0) Color(0xFF009688) else Color(0xFFE0E0E0)),
                     modifier = Modifier.height(36.dp),
-                    colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFF009688))
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        contentColor = if (selectedTab == 0) Color(0xFF009688) else Color.Gray,
+                        containerColor = if (selectedTab == 0) Color(0xFF009688).copy(alpha = 0.1f) else Color.Transparent
+                    )
                 ) {
                     Icon(Icons.Default.VolunteerActivism, contentDescription = null, modifier = Modifier.size(16.dp))
                     Spacer(modifier = Modifier.width(8.dp))
                     Text("Mis Apoyos", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
                 }
                 OutlinedButton(
-                    onClick = { },
+                    onClick = { selectedTab = 1 },
                     shape = RoundedCornerShape(8.dp),
-                    border = BorderStroke(1.dp, Color(0xFFE0E0E0)),
+                    border = BorderStroke(1.dp, if (selectedTab == 1) Color(0xFF009688) else Color(0xFFE0E0E0)),
                     modifier = Modifier.height(36.dp),
-                    colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.Gray)
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        contentColor = if (selectedTab == 1) Color(0xFF009688) else Color.Gray,
+                        containerColor = if (selectedTab == 1) Color(0xFF009688).copy(alpha = 0.1f) else Color.Transparent
+                    )
                 ) {
                     Icon(Icons.Default.Book, contentDescription = null, modifier = Modifier.size(16.dp))
                     Spacer(modifier = Modifier.width(8.dp))
@@ -613,30 +619,116 @@ fun HistorialSection() {
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(140.dp)
-                    .background(Color(0xFFF9FAFB), RoundedCornerShape(12.dp))
-                    .padding(16.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Icon(
-                        imageVector = Icons.Default.VolunteerActivism,
-                        contentDescription = null,
-                        tint = Color.LightGray,
-                        modifier = Modifier.size(48.dp)
-                    )
-                    Spacer(modifier = Modifier.height(12.dp))
-                    Text(
-                        text = "No tienes historial de apoyos registrado.",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = Color.LightGray,
-                        textAlign = TextAlign.Center
-                    )
+            if (selectedTab == 0) {
+                if (historial.isEmpty()) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(140.dp)
+                            .background(Color(0xFFF9FAFB), RoundedCornerShape(12.dp))
+                            .padding(16.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Icon(
+                                imageVector = Icons.Default.VolunteerActivism,
+                                contentDescription = null,
+                                tint = Color.LightGray,
+                                modifier = Modifier.size(48.dp)
+                            )
+                            Spacer(modifier = Modifier.height(12.dp))
+                            Text(
+                                text = "No tienes historial de apoyos registrado.",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = Color.LightGray,
+                                textAlign = TextAlign.Center
+                            )
+                        }
+                    }
+                } else {
+                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                        val itemsToShow = historial.take(3)
+                        itemsToShow.forEach { item ->
+                            HistorialItemCard(item)
+                        }
+
+                        if (historial.size > 3) {
+                            Text(
+                                text = "+ ${historial.size - 3} más...",
+                                style = MaterialTheme.typography.labelMedium,
+                                color = Color.Gray,
+                                modifier = Modifier.padding(start = 8.dp, top = 4.dp)
+                            )
+                        }
+                    }
+                }
+            } else {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(140.dp)
+                        .background(Color(0xFFF9FAFB), RoundedCornerShape(12.dp))
+                        .padding(16.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Icon(
+                            imageVector = Icons.Default.Book,
+                            contentDescription = null,
+                            tint = Color.LightGray,
+                            modifier = Modifier.size(48.dp)
+                        )
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Text(
+                            text = "No tienes historial de cursos registrado.",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = Color.LightGray,
+                            textAlign = TextAlign.Center
+                        )
+                    }
                 }
             }
+        }
+    }
+}
+
+@Composable
+fun HistorialItemCard(item: HistorialUiItem) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(Color(0xFFF9FAFB), RoundedCornerShape(12.dp))
+            .padding(16.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(
+            imageVector = Icons.Default.Assignment,
+            contentDescription = null,
+            tint = Color(0xFF7E57C2),
+            modifier = Modifier.size(24.dp)
+        )
+        Spacer(modifier = Modifier.width(12.dp))
+        Text(
+            text = item.titulo,
+            style = MaterialTheme.typography.bodyMedium,
+            fontWeight = FontWeight.SemiBold,
+            color = Color.Black,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.weight(1f)
+        )
+        Spacer(modifier = Modifier.width(8.dp))
+        Surface(
+            color = Color.LightGray.copy(alpha = 0.3f),
+            shape = RoundedCornerShape(8.dp)
+        ) {
+            Text(
+                text = item.estatus,
+                style = MaterialTheme.typography.labelSmall,
+                fontWeight = FontWeight.Bold,
+                color = Color.Gray,
+                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+            )
         }
     }
 }

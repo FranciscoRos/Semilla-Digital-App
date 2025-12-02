@@ -22,6 +22,12 @@ data class NovedadUiItem(
     val tipo: TipoNovedad
 )
 
+data class HistorialUiItem(
+    val id: String,
+    val titulo: String,
+    val estatus: String = "Pendiente"
+)
+
 enum class TipoNovedad {
     CURSO, APOYO
 }
@@ -32,7 +38,8 @@ data class DashboardState(
     val isLoading: Boolean = false,
     val error: String? = null,
     val isLoggedOut: Boolean = false,
-    val novedades: List<NovedadUiItem> = emptyList()
+    val novedades: List<NovedadUiItem> = emptyList(),
+    val historial: List<HistorialUiItem> = emptyList()
 )
 
 @HiltViewModel
@@ -50,6 +57,7 @@ class DashboardViewModel @Inject constructor(
     init {
         loadData()
         preloadModules()
+        observeHistorial()
     }
 
     private fun preloadModules() {
@@ -60,6 +68,23 @@ class DashboardViewModel @Inject constructor(
 
             if (!userId.isNullOrEmpty()) {
                 launch { apoyosRepository.refreshRegistro(userId) }
+            }
+        }
+    }
+
+    private fun observeHistorial() {
+        viewModelScope.launch {
+            apoyosRepository.registroUsuario.collect { registro ->
+                if (registro != null) {
+                    val items = registro.HistorialApoyo.map {
+                        HistorialUiItem(
+                            id = it.idApoyo,
+                            titulo = it.nombre_programa,
+                            estatus = "Pendiente"
+                        )
+                    }
+                    _state.update { it.copy(historial = items) }
+                }
             }
         }
     }
