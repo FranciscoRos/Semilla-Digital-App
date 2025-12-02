@@ -26,9 +26,13 @@ import com.semilladigital.dashboard.ui.DashboardScreen
 import com.semilladigital.courses.ui.CourseScreen
 import com.semilladigital.auth.ui.register.RegisterScreen
 import com.semilladigital.chatbot.presentation.ChatScreen
-import com.semilladigital.forum.ui.ForumScreen
 import com.semilladigital.geomap.ui.GeomapScreen
 import com.semilladigital.supports.presentation.ApoyosScreen
+// Importaciones del módulo foro
+import com.semilladigital.forum.ui.ForoCategoriasScreen
+import com.semilladigital.forum.ui.ForoTemasScreen
+import com.semilladigital.forum.ui.TemaDetalleScreen
+import com.semilladigital.forum.ui.ForoViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -42,7 +46,9 @@ object Routes {
     const val COURSES = "courses?id={id}"
     const val SUPPORTS = "supports?id={id}"
     const val CHATBOT = "chatbot"
-    const val FORUM = "forum"
+    const val FORUM_CATEGORIES = "forum_categories"
+    const val FORUM_TEMAS = "forum_temas"
+    const val FORUM_DETALLE = "forum_detalle/{temaId}"
     const val GEOMAP = "geomap"
 }
 
@@ -79,7 +85,8 @@ fun AppNavigation() {
         Routes.DASHBOARD,
         "courses",
         "supports",
-        Routes.FORUM,
+        Routes.FORUM_CATEGORIES,
+        Routes.FORUM_TEMAS,
         Routes.GEOMAP
     )
 
@@ -143,7 +150,7 @@ fun AppNavigation() {
                         },
                         onNavigateToChatbot = { navController.navigate(Routes.CHATBOT) },
                         onNavigateToGeomap = { navController.navigate(Routes.GEOMAP) },
-                        onNavigateToForum = { navController.navigate(Routes.FORUM) },
+                        onNavigateToForum = { navController.navigate(Routes.FORUM_CATEGORIES) },
                         onNavigateToLogin = {
                             navController.navigate(Routes.LOGIN) {
                                 popUpTo(0)
@@ -176,8 +183,50 @@ fun AppNavigation() {
                     )
                 }
 
-                composable(Routes.FORUM) {
-                    ForumScreen(
+                // --- FORO: CATEGORÍAS (Ruta inicial) ---
+                composable(Routes.FORUM_CATEGORIES) {
+                    val viewModel = hiltViewModel<ForoViewModel>()
+                    val state by viewModel.state.collectAsState()
+
+                    ForoCategoriasScreen(
+                        categorias = state.categorias,
+                        isLoading = state.isLoading,
+                        onNavigateToTemasList = { navController.navigate(Routes.FORUM_TEMAS) }
+                    )
+                }
+
+                // --- FORO: LISTA DE TEMAS/DISCUSIONES ---
+                composable(Routes.FORUM_TEMAS) {
+                    val viewModel = hiltViewModel<ForoViewModel>()
+                    val state by viewModel.state.collectAsState()
+
+                    ForoTemasScreen(
+                        temasRecientes = state.temasRecientes,
+                        isLoading = state.isLoading,
+                        onBack = { navController.popBackStack() },
+                        onNavigateToDetalle = { temaId ->
+                            // El ViewModel carga el detalle aquí, pero la navegación
+                            // al detalle usa el ID para que la ruta sea única.
+                            navController.navigate("forum_detalle/$temaId")
+                        }
+                    )
+                }
+
+                // --- FORO: DETALLE DEL TEMA ---
+                composable(
+                    route = Routes.FORUM_DETALLE,
+                    arguments = listOf(navArgument("temaId") { type = NavType.StringType; nullable = false })
+                ) { backStackEntry ->
+                    val temaId = backStackEntry.arguments?.getString("temaId")
+
+                    val viewModel = hiltViewModel<ForoViewModel>()
+                    LaunchedEffect(temaId) {
+                        if (temaId != null && viewModel.state.value.detalle.tema == null) {
+                            viewModel.loadTemaDetalle(temaId)
+                        }
+                    }
+
+                    TemaDetalleScreen(
                         onBack = { navController.popBackStack() }
                     )
                 }
