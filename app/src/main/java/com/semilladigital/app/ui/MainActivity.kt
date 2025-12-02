@@ -16,7 +16,6 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // Configuración para diseño Edge-to-Edge: fundamental para el correcto padding del mapa
         WindowCompat.setDecorFitsSystemWindows(window, false)
 
         setContent {

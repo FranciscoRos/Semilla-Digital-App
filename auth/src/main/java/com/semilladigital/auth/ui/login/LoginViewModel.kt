@@ -15,7 +15,7 @@ import javax.inject.Inject
 @HiltViewModel
 class LoginViewModel @Inject constructor(
     private val authRepository: AuthRepository,
-    private val sessionStorage: SessionStorage // <-- 2. INYECTA EL STORAGE
+    private val sessionStorage: SessionStorage
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(LoginState())
@@ -46,11 +46,6 @@ class LoginViewModel @Inject constructor(
 
             result.fold(
                 onSuccess = { authResult ->
-                    // --- 3. ¡CAMBIO AQUÍ! ---
-                    // Guardamos el token en DataStore
-                   // sessionStorage.saveToken(authResult.token)
-
-                    // (Opcional: guardar también datos del usuario si quieres)
 
                     _state.update {
                         it.copy(

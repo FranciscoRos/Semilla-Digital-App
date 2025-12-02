@@ -28,7 +28,7 @@ fun ParcelMapScreen(
         position = CameraPosition.fromLatLngZoom(chetumal, 13f)
     }
 
-    // Estado de los puntos: Usamos una lista inmutable para forzar la recomposición al modificarla
+    // Estado de los puntos
     var polygonPoints by remember { mutableStateOf(listOf<LatLng>()) }
 
     val mapProperties by remember {

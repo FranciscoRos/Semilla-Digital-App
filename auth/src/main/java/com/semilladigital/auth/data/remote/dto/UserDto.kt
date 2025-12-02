@@ -3,6 +3,8 @@ package com.semilladigital.auth.data.remote.dto
 import com.google.gson.annotations.SerializedName
 
 data class UserDto(
+    //lo que van en serialized es como el server lo mannda
+
     @SerializedName("id")
     val id: String?,
 

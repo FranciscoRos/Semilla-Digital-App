@@ -19,13 +19,11 @@ class CourseRepositoryImpl @Inject constructor(
     override val courses: StateFlow<List<Course>> = _courses.asStateFlow()
 
     private var lastFetchTime: Long = 0
-    private val CACHE_TIMEOUT = 5 * 60 * 1000 // 5 minutos
+    private val CACHE_TIMEOUT = 5 * 60 * 1000
 
     override suspend fun refreshCourses(): Result<Unit> {
         return try {
             val response = apiService.getCourses()
-            // Asegúrate que tu response.data sea la lista.
-            // Si usas DataWrapper, sería response.data.map { ... }
             val domainCourses = response.data.map { it.toDomain() }
             _courses.value = domainCourses
             lastFetchTime = System.currentTimeMillis()

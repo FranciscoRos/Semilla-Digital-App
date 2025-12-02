@@ -10,5 +10,5 @@ data class LoginRequestDto(
     val contrasena: String,
 
     @SerializedName("Tipo")
-    val tipo: String = "Usuario" // Lo ponemos fijo
+    val tipo: String = "Usuario"
 )

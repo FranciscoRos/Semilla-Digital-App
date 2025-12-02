@@ -167,7 +167,7 @@ class RegisterViewModel @Inject constructor(
                     questionActividades?.options?.find { it.value == valor.toString() }?.label ?: valor.toString()
                 }
 
-                // 2. Construir el Payload igual al Postman
+                // 2. Construir el Payload
                 val payload = mutableMapOf<String, Any>()
 
                 // Coordenadas
@@ -188,8 +188,8 @@ class RegisterViewModel @Inject constructor(
 
                 payload["Usuario"] = mapOf(
                     "Nombre" to s.nombreCompleto,
-                    "Apellido1" to "Poot8", // Hardcodeado según tu ejemplo Postman para probar
-                    "Apellido2" to "Fiona8", // Hardcodeado según tu ejemplo Postman
+                    "Apellido1" to "Poot8",
+                    "Apellido2" to "Fiona8",
                     "Curp" to s.curp,
                     "Correo" to s.correo,
                     "Contrasena" to s.contrasena,
