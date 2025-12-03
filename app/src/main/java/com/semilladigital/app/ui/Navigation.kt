@@ -106,7 +106,7 @@ fun AppNavigation() {
                 }
             }
         }
-    ) { paddingValues ->
+    ) {
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -191,7 +191,8 @@ fun AppNavigation() {
                     ForoCategoriasScreen(
                         categorias = state.categorias,
                         isLoading = state.isLoading,
-                        onNavigateToTemasList = { navController.navigate(Routes.FORUM_TEMAS) }
+                        onNavigateToTemasList = { navController.navigate(Routes.FORUM_TEMAS) },
+                        onBack = { navController.popBackStack() }
                     )
                 }
 
